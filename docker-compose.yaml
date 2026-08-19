@@ -1,0 +1,38 @@
+# Orquestração de desenvolvimento: Postgres + backend de conferência de notas.
+# O build de produção com Caddy/TLS é escopo da Task 5 (ADR-011).
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: cacau
+      POSTGRES_PASSWORD: cacau
+      POSTGRES_DB: cacau
+    ports:
+      - "5432:5432"
+    volumes:
+      - cacau-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cacau -d cacau"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: postgres://cacau:cacau@postgres:5432/cacau
+      JWT_SECRET: ${JWT_SECRET:-segredo-de-desenvolvimento}
+      # Código da loja na API interna da Cacau Show — nunca fica no código-fonte.
+      EMPRESA_CODE: ${EMPRESA_CODE:-1102}
+      FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:5174}
+      PORT: "3001"
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  cacau-postgres-data:

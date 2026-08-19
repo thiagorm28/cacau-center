@@ -1,0 +1,25 @@
+# Reverse proxy de produção (ADR-011): termina TLS e divide o tráfego entre a API
+# (`backend`) e o build estático do PWA (`frontend`).
+#
+# `SITE_ADDRESS` controla o modo:
+#   - domínio (ex.: `notas.exemplo.com.br`) -> Caddy obtém certificado Let's Encrypt
+#     automaticamente e redireciona HTTP -> HTTPS. É o modo de produção.
+#   - `:80` -> HTTP puro, sem certificado. Usado apenas no smoke test local do stack.
+{
+	email {$TLS_EMAIL:admin@example.com}
+}
+
+{$SITE_ADDRESS::80} {
+	encode zstd gzip
+
+	# O backend NestJS não usa prefixo global de rota (`/auth`, `/notes`,
+	# `/scan-events`), então `handle_path` remove `/api` antes de repassar. O bundle do
+	# frontend é buildado com `VITE_API_URL=/api`, mantendo tudo na mesma origem.
+	handle_path /api/* {
+		reverse_proxy backend:3000
+	}
+
+	handle {
+		reverse_proxy frontend:80
+	}
+}

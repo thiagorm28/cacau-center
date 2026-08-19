@@ -1,0 +1,1 @@
+ALTER TABLE "note_items" ADD CONSTRAINT "note_items_confirmed_qty_within_expected" CHECK ("confirmed_qty" <= "expected_qty");

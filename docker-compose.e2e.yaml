@@ -1,0 +1,28 @@
+# Postgres exclusivo da suíte E2E (`npm run test:e2e`).
+#
+# Vive separado do `docker-compose.yaml` de desenvolvimento de propósito: cada teste
+# roda `TRUNCATE ... CASCADE` no banco inteiro, então apontar a suíte para o Postgres
+# de dev apagaria os dados de trabalho. Daí a porta `55432` e o projeto próprio —
+# os dois sobem lado a lado sem colidir.
+name: cacau-center-e2e
+
+services:
+  postgres-e2e:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: cacau
+      POSTGRES_PASSWORD: cacau
+      # O banco `cacau_e2e` é criado pela própria suíte (`ensureDatabase`); aqui basta
+      # o banco administrativo padrão para a conexão inicial.
+      POSTGRES_DB: postgres
+    ports:
+      - "55432:5432"
+    # Estado efêmero: a suíte trunca tudo a cada teste, então nada precisa sobreviver
+    # ao container — e em RAM o setup fica bem mais rápido.
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cacau -d postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 15

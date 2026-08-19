@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+/*
+ * Tokens do `DESIGN.md` (Chocolate & Creme), transcritos sem alteração de valor.
+ * Ficam no namespace `@theme` do Tailwind v4 para virarem utilitários
+ * (`bg-surface`, `text-accent-700`, `rounded-card`, `shadow-md`, `font-heading`…).
+ */
+@theme {
+  /* base */
+  --color-bg: #f5ead8;
+  --color-surface: #fffaf1;
+  --color-text: #201e1d;
+
+  /* chocolate */
+  --color-choc-800: #3a2318;
+  --color-choc-700: #54372a;
+  --color-choc-600: #5f3d28;
+
+  /* creme sobre chocolate */
+  --color-cream-1: #e2cba7;
+  --color-cream-2: #c9ad84;
+  --color-cream-3: #a9855c;
+
+  /* acento terracota */
+  --color-accent-100: #f3e0d1;
+  --color-accent-300: #e2b58f;
+  --color-accent: #c67139;
+  --color-accent-700: #8f4e26;
+  --color-accent-900: #5a3117;
+
+  /* formatos */
+  --radius-card: 22px;
+  --radius-sheet: 34px;
+  --radius-frame: 46px;
+  --radius-pill: 999px;
+
+  /* sombras */
+  --shadow-sm: 0 1px 2px rgba(58, 35, 24, 0.06);
+  --shadow-md: 0 4px 14px rgba(58, 35, 24, 0.1);
+  --shadow-lg: 0 12px 32px rgba(58, 35, 24, 0.14);
+
+  /* fontes */
+  --font-heading: "Caprasimo", serif;
+  --font-body: "Figtree", sans-serif;
+
+  /* escala tipográfica de referência do DESIGN.md */
+  --text-display: 76px;
+  --text-title: 22px;
+  --text-item: 15px;
+  --text-meta: 12px;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-bg);
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Rótulos de seção: maiúsculas com `letter-spacing: .06em` (DESIGN.md). */
+  .section-label {
+    font-size: var(--text-meta);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+}

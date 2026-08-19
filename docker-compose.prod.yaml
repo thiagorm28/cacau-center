@@ -1,0 +1,117 @@
+# Topologia de produção em VPS único (ADR-011): Postgres + backend + build estático do
+# PWA atrás de um Caddy que termina TLS automático (Let's Encrypt).
+#
+# Independente do `docker-compose.yaml` de desenvolvimento — aquele é otimizado para
+# iteração local (porta 3001 exposta, sem proxy); este, para a topologia do VPS.
+#
+# Uso: `cp .env.example .env`, preencher os valores reais e
+#      `docker compose -f docker-compose.prod.yaml up -d --build`.
+# Antes do go-live, rodar a verificação de conectividade descrita em `DEPLOY.md`.
+name: cacau-center-prod
+
+services:
+  # Nenhuma variável sensível tem valor default aqui: um default silencioso em produção
+  # é pior que uma falha. Sem `.env` preenchido, o Postgres recusa senha vazia e o
+  # `requireEnv` do backend aborta o boot nomeando a variável faltante.
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cacau}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-cacau}
+    volumes:
+      - cacau-postgres-prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cacau} -d ${POSTGRES_DB:-cacau}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    environment:
+      # Schema default (`public`) — o backend não usa namespace de schema próprio.
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      # Código da loja na API interna da Cacau Show; nunca fica no código-fonte.
+      EMPRESA_CODE: ${EMPRESA_CODE}
+      NFE_BASE_URL: ${NFE_BASE_URL:-http://hybrisreports.cacaushow.com.br}
+      # Mesma origem do PWA: o Caddy de borda serve API e frontend sob um só domínio.
+      FRONTEND_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost}
+      # Freio de força bruta do login (contado por IP + e-mail). `0` desliga.
+      LOGIN_RATE_LIMIT: ${LOGIN_RATE_LIMIT:-5}
+      LOGIN_RATE_TTL_SECONDS: ${LOGIN_RATE_TTL_SECONDS:-60}
+      PORT: "3000"
+    expose:
+      - "3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # `main.ts` só chama `listen` depois de aplicar as migrations, então aceitar conexão
+      # já prova que o boot terminou. `/auth/me` sem cookie responde 401 (IT-013): prova
+      # também que o roteamento e a cadeia de guards estão de pé. 401 é o único status
+      # esperado aqui — 200 exigiria sessão, e qualquer outro indica app mal formado.
+      test:
+        - CMD
+        - node
+        - -e
+        - "require('node:http').get('http://127.0.0.1:3000/auth/me',r=>process.exit(r.statusCode===401?0:1)).on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      # Migrations em banco novo podem demorar; falhas dentro da janela inicial não
+      # contam para `retries`.
+      start_period: 30s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: /api
+    restart: unless-stopped
+    expose:
+      - "80"
+    healthcheck:
+      # O Caddy estático serve `index.html` em `/` assim que sobe; 200 basta como sinal.
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:80/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      # Domínio de produção (TLS automático) ou `:80` para o smoke test local.
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      TLS_EMAIL: ${TLS_EMAIL:-admin@example.com}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificados e chaves ACME precisam sobreviver a recriações do container,
+      # sob pena de estourar o rate limit do Let's Encrypt.
+      - caddy-data:/data
+      - caddy-config:/config
+    # `service_healthy` (e não a espera padrão, que só aguarda o container iniciar):
+    # sem isso o Caddy de borda começa a rotear enquanto o backend ainda roda migrations,
+    # devolvendo 502/connection refused na primeira janela de cada deploy.
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+
+volumes:
+  cacau-postgres-prod:
+  caddy-data:
+  caddy-config:

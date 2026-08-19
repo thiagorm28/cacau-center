@@ -1,0 +1,5 @@
+# Segredos de ambiente: apenas o template versionado.
+.env
+.env.*
+!.env.example
+node_modules

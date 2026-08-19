@@ -1,0 +1,22 @@
+# Servidor estático do build do PWA, atrás do Caddy de borda (ver `Caddyfile` da raiz).
+# Sem TLS aqui: a terminação acontece na borda.
+{
+	auto_https off
+	admin off
+}
+
+:80 {
+	root * /srv
+	encode zstd gzip
+
+	# O app é uma SPA (react-router): rotas profundas precisam cair no `index.html`.
+	# `index.html` e o service worker nunca podem ser cacheados de forma agressiva,
+	# senão uma release nova fica invisível para quem já instalou o PWA.
+	@immutable path /assets/*
+	header @immutable Cache-Control "public, max-age=31536000, immutable"
+	@revalidate path /index.html / /sw.js /registerSW.js /manifest.webmanifest
+	header @revalidate Cache-Control "no-cache"
+
+	try_files {path} /index.html
+	file_server
+}
