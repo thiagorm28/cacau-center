@@ -1,6 +1,7 @@
 import type { DivergenceReport } from "../../api/types";
 import { Banner } from "../../components/ui/Banner";
 import { Screen } from "../../components/ui/Screen";
+import { LogoutButton } from "../auth/LogoutButton";
 import { ReportScanList } from "./ReportScanList";
 
 interface ReportScreenProps {
@@ -21,7 +22,11 @@ export function ReportScreen({ report }: ReportScreenProps) {
     report.unidentifiedScans.length === 0;
 
   return (
-    <Screen title={`Nota ${report.invoiceNumber}`} subtitle={STATUS_LABEL[report.status]}>
+    <Screen
+      title={`Nota ${report.invoiceNumber}`}
+      subtitle={STATUS_LABEL[report.status]}
+      header={<LogoutButton />}
+    >
       <div className="flex flex-col gap-6">
         {report.isComplete && hasNoDivergence ? (
           <Banner tone="success">Tudo certo: todos os itens foram conferidos.</Banner>

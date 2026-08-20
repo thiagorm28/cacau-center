@@ -12,7 +12,12 @@ import type {
   NewScanEventInput,
   ScanEventRepository,
 } from "../../src/infra/repository/ScanEventRepository";
-import type { UserRecord, UserRepository } from "../../src/infra/repository/UserRepository";
+import type {
+  NewUserInput,
+  UserRecord,
+  UserRepository,
+  UserUpdateInput,
+} from "../../src/infra/repository/UserRepository";
 
 type ItemRecord = {
   itemId: string;
@@ -224,6 +229,45 @@ export class InMemoryUserRepository implements UserRepository {
 
   async findByIds(userIds: readonly string[]): Promise<UserRecord[]> {
     return this.records.filter((record) => userIds.includes(record.userId));
+  }
+
+  async findByCpf(cpf: string): Promise<UserRecord | null> {
+    return this.records.find((record) => record.cpf === cpf) ?? null;
+  }
+
+  async list(): Promise<UserRecord[]> {
+    return [...this.records].sort((left, right) => left.name.localeCompare(right.name));
+  }
+
+  async create(data: NewUserInput): Promise<UserRecord> {
+    const record: UserRecord = { userId: randomUUID(), ...data };
+    this.records.push(record);
+    return { ...record };
+  }
+
+  async update(userId: string, data: UserUpdateInput): Promise<UserRecord> {
+    const record = this.records.find((candidate) => candidate.userId === userId);
+    if (record === undefined) throw new Error("Usuário não encontrado");
+    record.name = data.name;
+    record.birthDate = data.birthDate;
+    record.role = data.role;
+    return { ...record };
+  }
+
+  async setActive(userId: string, active: boolean): Promise<void> {
+    const record = this.records.find((candidate) => candidate.userId === userId);
+    if (record !== undefined) record.active = active;
+  }
+
+  async setPassword(
+    userId: string,
+    passwordHash: string,
+    mustChangePassword: boolean,
+  ): Promise<void> {
+    const record = this.records.find((candidate) => candidate.userId === userId);
+    if (record === undefined) return;
+    record.passwordHash = passwordHash;
+    record.mustChangePassword = mustChangePassword;
   }
 }
 

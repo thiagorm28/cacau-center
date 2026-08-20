@@ -1,4 +1,10 @@
-import type { DivergenceReport, HistoryEntry, NoteItemView, NoteView } from "../api/types";
+import type {
+  DivergenceReport,
+  HistoryEntry,
+  NoteItemView,
+  NoteView,
+  UserListItem,
+} from "../api/types";
 
 export const buildItem = (overrides: Partial<NoteItemView> = {}): NoteItemView => ({
   itemId: "item-1",
@@ -57,5 +63,17 @@ export const buildHistoryEntry = (overrides: Partial<HistoryEntry> = {}): Histor
   expectedTotal: 10,
   confirmedTotal: 7,
   missingTotal: 3,
+  ...overrides,
+});
+
+export const buildUser = (overrides: Partial<UserListItem> = {}): UserListItem => ({
+  id: "user-1",
+  name: "Marina Souza",
+  email: "marina@loja.com",
+  cpf: "52998224725",
+  birthDate: "1990-03-15",
+  role: "operador",
+  active: true,
+  mustChangePassword: false,
   ...overrides,
 });

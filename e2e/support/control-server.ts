@@ -20,13 +20,30 @@ export const CONTROL_PORT = Number.parseInt(process.env.E2E_CONTROL_PORT ?? "300
 export const OPERADOR = {
   name: "Ana Operadora",
   email: "operador@loja.com",
+  cpf: "52998224725",
+  birthDate: "1990-03-15",
   password: "senha-operador",
   role: "operador",
+} as const;
+
+/**
+ * Conta admin: provisionada fora da aplicação (ADR-001), então a suíte a semeia junto
+ * das outras em vez de criá-la por alguma rota.
+ */
+export const ADMIN = {
+  name: "Dora Dona",
+  email: "admin@loja.com",
+  cpf: "98765432100",
+  birthDate: "1975-11-05",
+  password: "senha-admin",
+  role: "admin",
 } as const;
 
 export const GERENTE = {
   name: "Gil Gerente",
   email: "gerente@loja.com",
+  cpf: "12345678909",
+  birthDate: "1985-07-20",
   password: "senha-gerente",
   role: "gerente",
 } as const;
@@ -46,10 +63,17 @@ const reset = async (): Promise<void> => {
     await client.query(
       "TRUNCATE TABLE scan_events, note_items, invoice_notes, users RESTART IDENTITY CASCADE",
     );
-    for (const user of [OPERADOR, GERENTE]) {
+    for (const user of [ADMIN, OPERADOR, GERENTE]) {
       await client.query(
-        "INSERT INTO users (name, email, password_hash, role) VALUES ($1, $2, $3, $4)",
-        [user.name, user.email, await bcrypt.hash(user.password, BCRYPT_ROUNDS), user.role],
+        "INSERT INTO users (name, email, cpf, birth_date, password_hash, role) VALUES ($1, $2, $3, $4, $5, $6)",
+        [
+          user.name,
+          user.email,
+          user.cpf,
+          user.birthDate,
+          await bcrypt.hash(user.password, BCRYPT_ROUNDS),
+          user.role,
+        ],
       );
     }
   } finally {

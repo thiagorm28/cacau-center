@@ -3,7 +3,7 @@
  * Nenhum destes tipos é editado no cliente: são apenas a forma do que chega.
  */
 
-export type UserRole = "operador" | "gerente";
+export type UserRole = "operador" | "gerente" | "admin";
 
 export type NoteStatus = "open" | "completed" | "closed_incomplete";
 
@@ -11,6 +11,47 @@ export interface SessionUser {
   id: string;
   name: string;
   role: UserRole;
+  /** Troca de senha obrigatória pendente (ADR-002): bloqueia o resto do app. */
+  mustChangePassword: boolean;
+}
+
+/** Papel atribuível pela gestão de usuários: `admin` nunca é opção (ADR-001). */
+export type AssignableRole = Exclude<UserRole, "admin">;
+
+/** Linha de `GET /users`: basta para a listagem e para pré-preencher a edição. */
+export interface UserListItem {
+  id: string;
+  name: string;
+  email: string;
+  /** Só dígitos, 11 caracteres. */
+  cpf: string;
+  /** `YYYY-MM-DD`. */
+  birthDate: string;
+  role: UserRole;
+  active: boolean;
+  mustChangePassword: boolean;
+}
+
+export interface CreateUserInput {
+  name: string;
+  email: string;
+  cpf: string;
+  /** `YYYY-MM-DD`. */
+  birthDate: string;
+  role: AssignableRole;
+}
+
+/** CPF e e-mail não são editáveis (Business Rules do PRD). */
+export interface UpdateUserInput {
+  name: string;
+  /** `YYYY-MM-DD`. */
+  birthDate: string;
+  role: AssignableRole;
+}
+
+export interface ChangePasswordInput {
+  newPassword: string;
+  confirmPassword: string;
 }
 
 export interface NoteItemView {

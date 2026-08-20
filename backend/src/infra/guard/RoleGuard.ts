@@ -16,6 +16,8 @@ export class RoleGuard implements CanActivate {
     if (roles === undefined || roles.length === 0) return true;
     const user = context.switchToHttp().getRequest<{ user?: SessionUser }>().user;
     if (user === undefined) throw new UnauthorizedError("Sessão inválida ou expirada");
+    // ADR-006: o admin passa em qualquer rota sem que ela precise listá-lo em `@Roles(...)`.
+    if (user.role === "admin") return true;
     if (!roles.includes(user.role)) {
       throw new ForbiddenError("Seu papel não tem acesso a este recurso");
     }

@@ -1,4 +1,6 @@
 import type {
+  ChangePasswordInput,
+  CreateUserInput,
   CreatedNote,
   DivergenceReport,
   FinalizeResult,
@@ -9,6 +11,8 @@ import type {
   ScanEventResult,
   SessionUser,
   SyncResult,
+  UpdateUserInput,
+  UserListItem,
 } from "./types";
 
 /** Erro de resposta HTTP do backend, já com o `statusCode` do `ErrorFilter`. */
@@ -80,12 +84,47 @@ const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
 const post = <T>(path: string, body?: unknown): Promise<T> =>
   request<T>(path, { method: "POST", ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
 
+const patch = <T>(path: string, body: unknown): Promise<T> =>
+  request<T>(path, { method: "PATCH", body: JSON.stringify(body) });
+
 export const login = (email: string, password: string): Promise<SessionUser> =>
   post<SessionUser>("/auth/login", { email, password });
 
 export const logout = (): Promise<void> => post<void>("/auth/logout");
 
 export const me = (): Promise<SessionUser> => request<SessionUser>("/auth/me");
+
+/**
+ * Conclui a troca obrigatória (ADR-002). O backend reemite o cookie de sessão já sem a
+ * pendência e devolve a identidade atualizada — não é preciso relogar depois.
+ */
+export const changePassword = (input: ChangePasswordInput): Promise<SessionUser> =>
+  post<SessionUser>("/auth/change-password", input);
+
+/**
+ * Gestão de contas (`/users`, exclusiva do admin — US-012). O backend devolve a lista
+ * embrulhada em `{ users }`; o cliente entrega só o array, que é o que as telas usam.
+ */
+export const listUsers = async (): Promise<readonly UserListItem[]> => {
+  const { users } = await request<{ users: UserListItem[] }>("/users");
+  return users;
+};
+
+export const createUser = (input: CreateUserInput): Promise<{ id: string }> =>
+  post<{ id: string }>("/users", input);
+
+export const updateUser = (userId: string, input: UpdateUserInput): Promise<{ id: string }> =>
+  patch<{ id: string }>(`/users/${userId}`, input);
+
+export const deactivateUser = (userId: string): Promise<void> =>
+  post<void>(`/users/${userId}/deactivate`);
+
+export const reactivateUser = (userId: string): Promise<void> =>
+  post<void>(`/users/${userId}/reactivate`);
+
+/** Devolve a conta à senha inicial `CPF@DDMMAAAA` e reabre a troca obrigatória (US-009). */
+export const resetUserPassword = (userId: string): Promise<void> =>
+  post<void>(`/users/${userId}/reset-password`);
 
 export const createNote = (invoiceNumber: string): Promise<CreatedNote> =>
   post<CreatedNote>("/notes", { invoiceNumber });

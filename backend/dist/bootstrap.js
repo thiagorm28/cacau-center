@@ -32,7 +32,15 @@ async function createApp() {
     // `X-Forwarded-For` faz `req.ip` valer o IP real, que é o que o throttle de login usa.
     app.set("trust proxy", Number.parseInt((0, Env_1.optionalEnv)("TRUST_PROXY_HOPS", "1"), 10));
     app.use((0, cookie_parser_1.default)());
-    app.useGlobalPipes(new common_1.ValidationPipe({ whitelist: true, forbidNonWhitelisted: false, transform: true }));
+    app.useGlobalPipes(
+    // 422 em vez do 400 padrão: o contrato de API trata erro de campo como erro de
+    // regra de negócio, mesmo status que o `ErrorFilter` já usa para `Error` puro.
+    new common_1.ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: false,
+        transform: true,
+        errorHttpStatusCode: common_1.HttpStatus.UNPROCESSABLE_ENTITY,
+    }));
     app.useGlobalFilters(new ErrorFilter_1.ErrorFilter());
     app.enableCors({
         origin: (0, Env_1.optionalEnv)("FRONTEND_ORIGIN", "http://localhost:5174"),

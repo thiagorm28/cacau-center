@@ -4,6 +4,7 @@ import { BoxScanner, installFakeCamera } from "./fakeCamera.ts";
 export const BACKEND_URL = "http://localhost:3001";
 export const CONTROL_URL = `http://127.0.0.1:${process.env.E2E_CONTROL_PORT ?? "3002"}`;
 
+export const ADMIN = { email: "admin@loja.com", password: "senha-admin" } as const;
 export const OPERADOR = { email: "operador@loja.com", password: "senha-operador" } as const;
 export const GERENTE = { email: "gerente@loja.com", password: "senha-gerente" } as const;
 

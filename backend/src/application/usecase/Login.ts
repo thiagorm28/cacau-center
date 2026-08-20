@@ -28,6 +28,12 @@ export default class Login {
       this.logger.warn(`Login recusado para ${input.email}: conta inexistente`);
       throw new UnauthorizedError(INVALID_CREDENTIALS);
     }
+    // Conta desativada usa a mesma mensagem genérica: não revela que a conta existe
+    // mas está desativada (ADR-003, TechSpec Data Flow passo 2).
+    if (!account.active) {
+      this.logger.warn(`Login recusado para ${input.email}: conta desativada`);
+      throw new UnauthorizedError(INVALID_CREDENTIALS);
+    }
     const matches = await this.passwordHasher.compare(input.password, account.passwordHash);
     if (!matches) {
       this.logger.warn(`Login recusado para ${input.email}: senha incorreta`);
@@ -38,6 +44,7 @@ export default class Login {
       name: account.name,
       email: account.email,
       role: account.role,
+      mustChangePassword: account.mustChangePassword,
     };
     return {
       user,

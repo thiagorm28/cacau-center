@@ -14,9 +14,11 @@ const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const passport_1 = require("@nestjs/passport");
 const throttler_1 = require("@nestjs/throttler");
+const ChangeInitialPassword_1 = __importDefault(require("../../application/usecase/ChangeInitialPassword"));
 const Login_1 = __importDefault(require("../../application/usecase/Login"));
 const SessionUser_1 = require("../../domain/SessionUser");
 const JwtStrategy_1 = require("../auth/JwtStrategy");
+const SessionRevocationStore_1 = require("../auth/SessionRevocationStore");
 const TokenGenerator_1 = __importDefault(require("../auth/TokenGenerator"));
 const AuthController_1 = require("../controller/AuthController");
 const LoginThrottleGuard_1 = require("../guard/LoginThrottleGuard");
@@ -52,6 +54,9 @@ exports.AuthModule = AuthModule = __decorate([
         controllers: [AuthController_1.AuthController],
         providers: [
             Login_1.default,
+            // Mora aqui, e não no `UserModule`: quem a expõe é o `AuthController`, e o
+            // `UserModule` já importa este módulo — o inverso criaria um ciclo.
+            ChangeInitialPassword_1.default,
             LoginThrottleGuard_1.LoginThrottleGuard,
             { provide: "PasswordHasher", useFactory: () => new PasswordHasher_1.default() },
             {
@@ -59,9 +64,14 @@ exports.AuthModule = AuthModule = __decorate([
                 useFactory: (jwtService) => new TokenGenerator_1.default(jwtService),
                 inject: [jwt_1.JwtService],
             },
-            { provide: JwtStrategy_1.JwtStrategy, useFactory: () => new JwtStrategy_1.JwtStrategy((0, Env_1.requireEnv)("JWT_SECRET")) },
+            SessionRevocationStore_1.SessionRevocationStore,
+            {
+                provide: JwtStrategy_1.JwtStrategy,
+                useFactory: (revocations) => new JwtStrategy_1.JwtStrategy((0, Env_1.requireEnv)("JWT_SECRET"), revocations),
+                inject: [SessionRevocationStore_1.SessionRevocationStore],
+            },
         ],
-        exports: ["PasswordHasher"],
+        exports: ["PasswordHasher", SessionRevocationStore_1.SessionRevocationStore],
     })
 ], AuthModule);
 //# sourceMappingURL=AuthModule.js.map

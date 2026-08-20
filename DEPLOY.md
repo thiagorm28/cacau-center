@@ -57,6 +57,30 @@ recriações, senão o rate limit do Let's Encrypt é atingido rapidamente.
 Antes do primeiro `up` com domínio real: apontar os registros A/AAAA do domínio para o IP
 do VPS e liberar as portas 80 e 443 no firewall — o desafio ACME depende das duas.
 
+## Provisionar a conta admin (uma vez, após o primeiro `up`)
+
+A conta admin é única e nasce fora da aplicação (ADR-001): nenhuma rota ou tela cria
+admin. Depois que o backend subiu e aplicou as migrations, com `ADMIN_NAME`,
+`ADMIN_EMAIL`, `ADMIN_CPF`, `ADMIN_BIRTH_DATE` e `ADMIN_PASSWORD` preenchidos no `.env`,
+rode a partir do checkout do repositório (o mesmo usado no `up --build`):
+
+```bash
+npm ci                                  # o script roda via tsx, uma devDependency
+DATABASE_URL=<url do Postgres do compose> npm run bootstrap:admin -w backend
+```
+
+O `docker-compose.prod.yaml` não publica a porta do Postgres no host, então esse comando
+precisa alcançar o banco pela rede do compose — em um VPS, anexe a execução a essa rede
+(`docker compose ... run --rm`) ou rode-o enquanto uma porta temporária estiver mapeada.
+O script não faz parte da imagem de runtime: ele vive em `backend/scripts/` e não é
+compilado para `dist/`.
+
+O script é idempotente: se já existir uma conta com `role = "admin"`, ele apenas informa
+e sai sem criar nada — rodar de novo por engano não duplica nem sobrescreve a conta. A
+senha informada é provisória: o primeiro login com ela cai direto na tela de troca de
+senha obrigatória (ADR-002). Trocar a conta admin depois disso é intervenção direta no
+banco, não um fluxo de produto.
+
 ## Smoke test local (sem domínio/TLS)
 
 Serve para conferir o encanamento do stack, não a operação completa:
@@ -78,7 +102,9 @@ HTTP puro. Isso é esperado e só afeta o smoke test.
 Todas ficam em `.env` (não versionado); `.env.example` é o template. Ver os comentários
 lá para o significado de cada uma: `SITE_ADDRESS`, `TLS_EMAIL`, `PUBLIC_ORIGIN`,
 `POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_DB`, `DATABASE_URL`, `JWT_SECRET`,
-`EMPRESA_CODE`, `NFE_BASE_URL`, `LOGIN_RATE_LIMIT`/`LOGIN_RATE_TTL_SECONDS`.
+`EMPRESA_CODE`, `NFE_BASE_URL`, `LOGIN_RATE_LIMIT`/`LOGIN_RATE_TTL_SECONDS` e as
+`ADMIN_*` do bootstrap da conta admin (usadas só pelo script, nunca pelo backend em
+tempo de execução).
 
 `POST /api/auth/login` é a única rota pública exposta pelo Caddy, então ela tem freio de
 força bruta: `LOGIN_RATE_LIMIT` tentativas por `LOGIN_RATE_TTL_SECONDS` segundos para

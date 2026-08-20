@@ -465,7 +465,7 @@ describe("Ciclo de vida da nota (HTTP)", () => {
     });
   });
 
-  it("IT-028 POST /scan-events sem scannedCode devolve 400 de validação", async () => {
+  it("IT-028 POST /scan-events sem scannedCode devolve 422 de validação", async () => {
     await createNote(REAL_FIXTURE_INVOICE_NUMBER);
 
     const response = await fetch(
@@ -473,6 +473,6 @@ describe("Ciclo de vida da nota (HTTP)", () => {
       jsonRequest(cookie, "POST", { clientEventId: randomUUID(), scannedAt: SCANNED_AT }),
     );
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(422);
   });
 });

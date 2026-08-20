@@ -7,6 +7,7 @@ import { PillButton } from "../../components/ui/PillButton";
 import { Screen } from "../../components/ui/Screen";
 import { useBarcodeScanner } from "../../hooks/useBarcodeScanner";
 import { useOfflineQueue } from "../../hooks/useOfflineQueue";
+import { LogoutButton } from "../auth/LogoutButton";
 import { FinalizeDialog } from "./FinalizeDialog";
 import { ManualItemDialog } from "./ManualItemDialog";
 import { NoteItemList } from "./NoteItemList";
@@ -41,7 +42,7 @@ export function ScanScreen({ notes, activeNoteId, onFinalized }: ScanScreenProps
   const activeNote = session.notes.find((note) => note.noteId === activeNoteId);
   if (activeNote === undefined) {
     return (
-      <Screen title="Bipagem">
+      <Screen title="Bipagem" header={<LogoutButton />}>
         <Banner tone="error">Nota não encontrada na fila de conferência.</Banner>
       </Screen>
     );
@@ -83,13 +84,16 @@ export function ScanScreen({ notes, activeNoteId, onFinalized }: ScanScreenProps
       title={`Nota ${activeNote.invoiceNumber}`}
       subtitle={activeNote.supplierName}
       header={
-        <div className="mt-6">
-          <BigCounter
-            value={activeNote.confirmedTotal}
-            total={activeNote.expectedTotal}
-            caption="caixas confirmadas"
-          />
-        </div>
+        <>
+          <LogoutButton />
+          <div className="mt-6">
+            <BigCounter
+              value={activeNote.confirmedTotal}
+              total={activeNote.expectedTotal}
+              caption="caixas confirmadas"
+            />
+          </div>
+        </>
       }
     >
       <div className="flex flex-col gap-5">

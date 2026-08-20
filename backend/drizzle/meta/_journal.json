@@ -15,6 +15,20 @@
       "when": 1787084719828,
       "tag": "0001_note_items_qty_check",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787174277237,
+      "tag": "0002_user_role_admin",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1787174281276,
+      "tag": "0003_users_admin_fields",
+      "breakpoints": true
     }
   ]
 }

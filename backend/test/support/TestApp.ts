@@ -9,6 +9,25 @@ import FixtureNfeServer from "./FixtureNfeServer";
 
 export const OPERADOR = { email: "operador@loja.com", password: "senha-operador" };
 export const GERENTE = { email: "gerente@loja.com", password: "senha-gerente" };
+/** Conta admin (ADR-001): no ambiente de teste ela é semeada junto com os demais papéis. */
+export const ADMIN = { email: "admin@loja.com", password: "senha-admin" };
+/**
+ * Operador que ainda está com a senha inicial `CPF@DDMMAAAA` e a troca obrigatória
+ * pendente (ADR-002): loga normalmente, mas é barrado nas demais rotas.
+ */
+export const USER_PENDING_CHANGE = {
+  email: "pendente@loja.com",
+  password: "11122233396@05111992",
+  cpf: "11122233396",
+  birthDate: "1992-11-05",
+};
+/** Operador desativado (ADR-003): a linha continua no banco, o login não passa. */
+export const USER_DEACTIVATED = {
+  email: "desativado@loja.com",
+  password: "senha-desativado",
+  cpf: "22233344405",
+  birthDate: "1988-04-30",
+};
 
 export type TestApp = {
   baseUrl: string;
@@ -62,14 +81,44 @@ export async function startTestApp(
       {
         name: "Ana Operadora",
         email: OPERADOR.email,
+        cpf: "52998224725",
+        birthDate: "1990-03-15",
         passwordHash: await hasher.hash(OPERADOR.password),
         role: "operador" as const,
       },
       {
         name: "Gil Gerente",
         email: GERENTE.email,
+        cpf: "12345678909",
+        birthDate: "1985-07-20",
         passwordHash: await hasher.hash(GERENTE.password),
         role: "gerente" as const,
+      },
+      {
+        name: "Dona da Loja",
+        email: ADMIN.email,
+        cpf: "98765432100",
+        birthDate: "1980-01-10",
+        passwordHash: await hasher.hash(ADMIN.password),
+        role: "admin" as const,
+      },
+      {
+        name: "Pedro Pendente",
+        email: USER_PENDING_CHANGE.email,
+        cpf: USER_PENDING_CHANGE.cpf,
+        birthDate: USER_PENDING_CHANGE.birthDate,
+        passwordHash: await hasher.hash(USER_PENDING_CHANGE.password),
+        role: "operador" as const,
+        mustChangePassword: true,
+      },
+      {
+        name: "Dario Desativado",
+        email: USER_DEACTIVATED.email,
+        cpf: USER_DEACTIVATED.cpf,
+        birthDate: USER_DEACTIVATED.birthDate,
+        passwordHash: await hasher.hash(USER_DEACTIVATED.password),
+        role: "operador" as const,
+        active: false,
       },
     ]);
   };

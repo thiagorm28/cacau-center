@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { buildReport } from "../../test/fixtures";
+import { withSession } from "../../test/session";
 import { ReportScreen } from "./ReportScreen";
 
 const missingItem = {
@@ -21,7 +22,7 @@ describe("ReportScreen", () => {
       missingItems: [missingItem],
     });
 
-    render(<ReportScreen report={report} />);
+    render(withSession(<ReportScreen report={report} />));
 
     expect(screen.getByText("Itens faltantes")).toBeInTheDocument();
     expect(screen.getByText("Panetone Trufado 400g")).toBeInTheDocument();
@@ -31,7 +32,7 @@ describe("ReportScreen", () => {
   it("UT-064: renderiza a confirmação 'tudo certo' para nota completa", () => {
     const report = buildReport({ status: "completed", isComplete: true });
 
-    render(<ReportScreen report={report} />);
+    render(withSession(<ReportScreen report={report} />));
 
     expect(screen.getByText(/Tudo certo/)).toBeInTheDocument();
     expect(screen.getByText("Nenhum item faltante.")).toBeInTheDocument();
@@ -53,7 +54,7 @@ describe("ReportScreen", () => {
       ],
     });
 
-    render(<ReportScreen report={report} />);
+    render(withSession(<ReportScreen report={report} />));
 
     const exceeded = screen.getByRole("heading", { name: "Caixas excedentes" });
     const section = exceeded.closest("section");

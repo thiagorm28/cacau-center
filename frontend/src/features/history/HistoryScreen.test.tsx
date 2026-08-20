@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { listHistory } from "../../api/client";
 import { buildHistoryEntry } from "../../test/fixtures";
+import { withSession } from "../../test/session";
 import { HistoryScreen } from "./HistoryScreen";
 
 vi.mock("../../api/client", async (importOriginal) => {
@@ -27,7 +28,7 @@ describe("HistoryScreen", () => {
       }),
     ]);
 
-    render(<HistoryScreen onOpenReport={vi.fn()} />);
+    render(withSession(<HistoryScreen onOpenReport={vi.fn()} />));
 
     expect(await screen.findByText("Nota 004005647")).toBeInTheDocument();
     expect(screen.getByText("Com divergência")).toBeInTheDocument();
@@ -40,7 +41,7 @@ describe("HistoryScreen", () => {
   it("UT-067: mostra estado vazio quando não há notas finalizadas", async () => {
     listHistoryMock.mockResolvedValue([]);
 
-    render(<HistoryScreen onOpenReport={vi.fn()} />);
+    render(withSession(<HistoryScreen onOpenReport={vi.fn()} />));
 
     expect(await screen.findByText("Nenhuma conferência finalizada ainda.")).toBeInTheDocument();
   });

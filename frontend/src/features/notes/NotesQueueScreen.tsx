@@ -4,6 +4,7 @@ import type { NoteView } from "../../api/types";
 import { Banner } from "../../components/ui/Banner";
 import { Screen } from "../../components/ui/Screen";
 import { useOnlineStatus } from "../../hooks/useOnlineStatus";
+import { LogoutButton } from "../auth/LogoutButton";
 import { NoteQueueCard } from "./NoteQueueCard";
 import { NoteSearchForm } from "./NoteSearchForm";
 
@@ -32,7 +33,11 @@ export function NotesQueueScreen({ onOpenNote }: NotesQueueScreenProps) {
   }, [reload]);
 
   return (
-    <Screen title="Notas em conferência" subtitle="Adicione uma nota pelo número de faturamento">
+    <Screen
+      title="Notas em conferência"
+      subtitle="Adicione uma nota pelo número de faturamento"
+      header={<LogoutButton />}
+    >
       <div className="flex flex-col gap-6">
         <NoteSearchForm isOnline={isOnline} onNoteCreated={() => void reload()} />
         {loadError === null ? null : <Banner tone="info">{loadError}</Banner>}

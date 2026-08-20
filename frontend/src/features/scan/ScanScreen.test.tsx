@@ -6,6 +6,7 @@ import { useBarcodeScanner } from "../../hooks/useBarcodeScanner";
 import { readOpenNotes } from "../../offline/noteSnapshotStore";
 import { readQueue, removeActions } from "../../offline/queueStore";
 import { buildItem, buildNote } from "../../test/fixtures";
+import { withSession } from "../../test/session";
 import { ScanScreen } from "./ScanScreen";
 
 vi.mock("../../api/client", async (importOriginal) => {
@@ -25,7 +26,7 @@ let emitScan: (code: string) => void = () => undefined;
 
 const renderScan = (notes: Parameters<typeof ScanScreen>[0]["notes"]) => {
   const onFinalized = vi.fn();
-  render(<ScanScreen notes={notes} activeNoteId="note-1" onFinalized={onFinalized} />);
+  render(withSession(<ScanScreen notes={notes} activeNoteId="note-1" onFinalized={onFinalized} />));
   return { onFinalized, user: userEvent.setup() };
 };
 

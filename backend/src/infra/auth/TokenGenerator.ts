@@ -7,6 +7,8 @@ export type JwtPayload = {
   name: string;
   email: string;
   role: SessionUser["role"];
+  /** Estado da troca obrigatória no momento da emissão (ADR-002). */
+  mustChangePassword: boolean;
 };
 
 export interface TokenGenerator {
@@ -25,6 +27,7 @@ export default class TokenGeneratorJwt implements TokenGenerator {
       name: user.name,
       email: user.email,
       role: user.role,
+      mustChangePassword: user.mustChangePassword,
     };
     return this.jwtService.signAsync(payload, { expiresIn: SESSION_TTL_SECONDS });
   }

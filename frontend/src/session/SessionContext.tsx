@@ -12,9 +12,16 @@ interface SessionState {
   expired: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  /**
+   * Substitui a identidade em memória pela que o servidor acabou de devolver (hoje só a
+   * troca de senha faz isso). O estado continua sendo o do servidor: quem chama passa o
+   * corpo da resposta, nunca um `mustChangePassword` inferido no cliente (US-011).
+   */
+  applyUser: (user: SessionUser) => void;
 }
 
-const SessionContext = createContext<SessionState | null>(null);
+/** Exportado para os testes injetarem uma sessão sem passar pelo `GET /auth/me`. */
+export const SessionContext = createContext<SessionState | null>(null);
 
 /**
  * Estado de sessão é genuinamente transversal (roteamento por papel, cabeçalho,
@@ -79,9 +86,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setExpired(false);
   }, []);
 
+  const applyUser = useCallback((current: SessionUser) => {
+    setUser(current);
+    setStatus("authenticated");
+  }, []);
+
   const value = useMemo<SessionState>(
-    () => ({ status, user, expired, signIn, signOut }),
-    [status, user, expired, signIn, signOut],
+    () => ({ status, user, expired, signIn, signOut, applyUser }),
+    [status, user, expired, signIn, signOut, applyUser],
   );
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }

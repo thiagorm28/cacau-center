@@ -6,6 +6,7 @@ import { NetworkError, listNotes } from "../api/client";
 import { useBarcodeScanner } from "../hooks/useBarcodeScanner";
 import { readOpenNotes, saveOpenNotes } from "../offline/noteSnapshotStore";
 import { buildItem, buildNote } from "../test/fixtures";
+import { withSession } from "../test/session";
 import { ScanRoute } from "./ScanRoute";
 
 vi.mock("../api/client", async (importOriginal) => {
@@ -42,11 +43,13 @@ const writeRawSnapshot = (value: unknown): Promise<void> =>
 
 const renderRoute = () =>
   render(
-    <MemoryRouter initialEntries={["/notas/note-1/bipagem"]}>
-      <Routes>
-        <Route path="/notas/:noteId/bipagem" element={<ScanRoute />} />
-      </Routes>
-    </MemoryRouter>,
+    withSession(
+      <MemoryRouter initialEntries={["/notas/note-1/bipagem"]}>
+        <Routes>
+          <Route path="/notas/:noteId/bipagem" element={<ScanRoute />} />
+        </Routes>
+      </MemoryRouter>,
+    ),
   );
 
 beforeEach(async () => {

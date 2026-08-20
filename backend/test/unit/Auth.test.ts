@@ -41,8 +41,12 @@ describe("Login", () => {
       userId: OPERATOR_ID,
       name: "Ana Operadora",
       email: "operador@loja.com",
+      cpf: "52998224725",
+      birthDate: "1990-03-15",
       passwordHash: await hasher.hash("senha-correta"),
       role: "operador",
+      active: true,
+      mustChangePassword: false,
     });
     login = new Login(
       unitOfWork,

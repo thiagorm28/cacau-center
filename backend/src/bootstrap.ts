@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { type INestApplication, ValidationPipe } from "@nestjs/common";
+import { HttpStatus, type INestApplication, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import cookieParser from "cookie-parser";
@@ -32,7 +32,14 @@ export async function createApp(): Promise<INestApplication> {
   app.set("trust proxy", Number.parseInt(optionalEnv("TRUST_PROXY_HOPS", "1"), 10));
   app.use(cookieParser());
   app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false, transform: true }),
+    // 422 em vez do 400 padrão: o contrato de API trata erro de campo como erro de
+    // regra de negócio, mesmo status que o `ErrorFilter` já usa para `Error` puro.
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: false,
+      transform: true,
+      errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+    }),
   );
   app.useGlobalFilters(new ErrorFilter());
   app.enableCors({

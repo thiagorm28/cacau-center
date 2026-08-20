@@ -21,25 +21,33 @@ const cookieExtractor = (request) => {
 };
 exports.cookieExtractor = cookieExtractor;
 let JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy, "jwt") {
-    constructor(secret) {
+    constructor(secret, revocations) {
         super({
             jwtFromRequest: passport_jwt_1.ExtractJwt.fromExtractors([exports.cookieExtractor]),
             ignoreExpiration: false,
             secretOrKey: secret,
         });
+        this.revocations = revocations;
     }
+    /**
+     * `false` reaproveita o caminho de 401 que o `AuthGuard.handleRequest` já trata —
+     * não existe erro novo aqui (ADR-005).
+     */
     validate(payload) {
+        if (this.revocations.isRevoked(payload.sub, payload.iat))
+            return false;
         return {
             userId: payload.sub,
             name: payload.name,
             email: payload.email,
             role: payload.role,
+            mustChangePassword: payload.mustChangePassword,
         };
     }
 };
 exports.JwtStrategy = JwtStrategy;
 exports.JwtStrategy = JwtStrategy = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [String])
+    __metadata("design:paramtypes", [String, Function])
 ], JwtStrategy);
 //# sourceMappingURL=JwtStrategy.js.map

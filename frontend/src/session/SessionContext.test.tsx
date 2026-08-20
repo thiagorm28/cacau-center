@@ -5,7 +5,12 @@ import { listNotes } from "../api/client";
 import { LoginScreen } from "../features/auth/LoginScreen";
 import { SessionProvider, useSession } from "./SessionContext";
 
-const OPERATOR = { id: "user-1", name: "Marina Souza", role: "operador" as const };
+const OPERATOR = {
+  id: "user-1",
+  name: "Marina Souza",
+  role: "operador" as const,
+  mustChangePassword: false,
+};
 
 const jsonResponse = (status: number, body: unknown): Response =>
   ({

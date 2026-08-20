@@ -21,6 +21,7 @@ let TokenGeneratorJwt = class TokenGeneratorJwt {
             name: user.name,
             email: user.email,
             role: user.role,
+            mustChangePassword: user.mustChangePassword,
         };
         return this.jwtService.signAsync(payload, { expiresIn: SessionUser_1.SESSION_TTL_SECONDS });
     }

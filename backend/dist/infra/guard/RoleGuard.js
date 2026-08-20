@@ -28,6 +28,9 @@ let RoleGuard = class RoleGuard {
         const user = context.switchToHttp().getRequest().user;
         if (user === undefined)
             throw new DomainErrors_1.UnauthorizedError("Sessão inválida ou expirada");
+        // ADR-006: o admin passa em qualquer rota sem que ela precise listá-lo em `@Roles(...)`.
+        if (user.role === "admin")
+            return true;
         if (!roles.includes(user.role)) {
             throw new DomainErrors_1.ForbiddenError("Seu papel não tem acesso a este recurso");
         }

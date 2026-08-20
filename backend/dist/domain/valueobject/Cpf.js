@@ -1,0 +1,37 @@
+"use strict";
+/**
+ * CPF do cadastro de usuário (US-004).
+ *
+ * A validação é local, sem dependência nova: o algoritmo de dígito verificador é
+ * pequeno o bastante para não justificar uma biblioteca (TechSpec, Key Decisions).
+ * Sequências de dígito repetido (`11111111111`) passam no checksum mas são recusadas
+ * na prática, então também são rejeitadas aqui (US-004.EC-1).
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+const INVALID = "CPF inválido";
+/** Dígito verificador da posição `position` (10 para o primeiro, 11 para o segundo). */
+const checkDigit = (digits, position) => {
+    const sum = digits
+        .slice(0, position - 1)
+        .split("")
+        .reduce((total, digit, index) => total + Number(digit) * (position - index), 0);
+    const remainder = (sum * 10) % 11;
+    return remainder === 10 ? 0 : remainder;
+};
+const hasValidCheckDigits = (digits) => checkDigit(digits, 10) === Number(digits[9]) && checkDigit(digits, 11) === Number(digits[10]);
+class Cpf {
+    constructor(digits) {
+        this.digits = digits;
+    }
+    /** Aceita com ou sem pontuação; guarda apenas os 11 dígitos. */
+    static create(raw) {
+        const digits = raw.replace(/\D/g, "");
+        const allSameDigit = /^(\d)\1{10}$/.test(digits);
+        if (digits.length !== 11 || allSameDigit || !hasValidCheckDigits(digits)) {
+            throw new Error(INVALID);
+        }
+        return new Cpf(digits);
+    }
+}
+exports.default = Cpf;
+//# sourceMappingURL=Cpf.js.map
