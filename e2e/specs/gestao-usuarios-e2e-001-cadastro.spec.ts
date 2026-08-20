@@ -1,4 +1,4 @@
-import { ADMIN, expect, loginAs, test } from "../support/fixtures.ts";
+import { ADMIN, expect, loginAs, logout, test } from "../support/fixtures.ts";
 
 /**
  * E2E-001 — Cadastro e primeiro acesso (US-003, US-010, US-011).
@@ -40,7 +40,7 @@ test("E2E-001: admin cadastra um operador que troca a senha no primeiro acesso",
   await expect(page.getByText(NOVO.initialPassword)).toBeVisible();
 
   // Act — o admin sai e o novo operador entra com a senha inicial
-  await page.getByRole("button", { name: "Sair" }).click();
+  await logout(page);
   await loginAs(page, { email: NOVO.email, password: NOVO.initialPassword });
 
   // Assert — o primeiro acesso cai direto na troca obrigatória (US-010/US-011)

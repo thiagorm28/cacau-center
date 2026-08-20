@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { listNotes } from "../api/client";
 import { LoginScreen } from "../features/auth/LoginScreen";
@@ -51,9 +52,12 @@ function AuthenticatedScreen() {
 
 const renderApp = () =>
   render(
-    <SessionProvider>
-      <AuthenticatedScreen />
-    </SessionProvider>,
+    // A `LoginScreen` é um `Screen`, que agora renderiza a gaveta — e ela lê a rota atual.
+    <MemoryRouter>
+      <SessionProvider>
+        <AuthenticatedScreen />
+      </SessionProvider>
+    </MemoryRouter>,
   );
 
 beforeEach(() => {
@@ -145,9 +149,11 @@ describe("SessionProvider", () => {
 
     const user = userEvent.setup();
     render(
-      <SessionProvider>
-        <SignOutScreen />
-      </SessionProvider>,
+      <MemoryRouter>
+        <SessionProvider>
+          <SignOutScreen />
+        </SessionProvider>
+      </MemoryRouter>,
     );
 
     await user.click(await screen.findByRole("button", { name: "Sair" }));

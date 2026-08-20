@@ -4,7 +4,6 @@ import type { HistoryEntry } from "../../api/types";
 import { Banner } from "../../components/ui/Banner";
 import { Card } from "../../components/ui/Card";
 import { Screen } from "../../components/ui/Screen";
-import { LogoutButton } from "../auth/LogoutButton";
 
 interface HistoryScreenProps {
   onOpenReport: (noteId: string) => void;
@@ -39,7 +38,7 @@ export function HistoryScreen({ onOpenReport }: HistoryScreenProps) {
   }, []);
 
   return (
-    <Screen title="Histórico" subtitle="Conferências já finalizadas" header={<LogoutButton />}>
+    <Screen title="Histórico" subtitle="Conferências já finalizadas">
       {error === null ? null : <Banner tone="error">{error}</Banner>}
       {entries === null ? null : entries.length === 0 ? (
         <p className="text-item text-choc-600">

@@ -1,9 +1,18 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactElement } from "react";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError, changePassword } from "../../api/client";
 import { OPERADOR, withSession } from "../../test/session";
 import { ChangePasswordScreen } from "./ChangePasswordScreen";
+
+/**
+ * O `Screen` renderiza a gaveta de navegação, que lê a rota atual — daí o `MemoryRouter`
+ * em volta de qualquer tela nos testes.
+ */
+const routed = (screenElement: ReactElement) => <MemoryRouter>{screenElement}</MemoryRouter>;
+
 
 vi.mock("../../api/client", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../api/client")>();
@@ -15,7 +24,7 @@ const changePasswordMock = vi.mocked(changePassword);
 const renderScreen = () => {
   const onChanged = vi.fn();
   const applyUser = vi.fn();
-  render(withSession(<ChangePasswordScreen onChanged={onChanged} />, { applyUser }));
+  render(withSession(routed(<ChangePasswordScreen onChanged={onChanged} />), { applyUser }));
   return { onChanged, applyUser, user: userEvent.setup() };
 };
 

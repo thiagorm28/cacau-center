@@ -1,5 +1,7 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactElement } from "react";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError, finalizeNote, sendScanEvent, syncScanEvents } from "../../api/client";
 import { useBarcodeScanner } from "../../hooks/useBarcodeScanner";
@@ -8,6 +10,13 @@ import { readQueue, removeActions } from "../../offline/queueStore";
 import { buildItem, buildNote } from "../../test/fixtures";
 import { withSession } from "../../test/session";
 import { ScanScreen } from "./ScanScreen";
+
+/**
+ * O `Screen` renderiza a gaveta de navegação, que lê a rota atual — daí o `MemoryRouter`
+ * em volta de qualquer tela nos testes.
+ */
+const routed = (screenElement: ReactElement) => <MemoryRouter>{screenElement}</MemoryRouter>;
+
 
 vi.mock("../../api/client", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../api/client")>();
@@ -26,7 +35,7 @@ let emitScan: (code: string) => void = () => undefined;
 
 const renderScan = (notes: Parameters<typeof ScanScreen>[0]["notes"]) => {
   const onFinalized = vi.fn();
-  render(withSession(<ScanScreen notes={notes} activeNoteId="note-1" onFinalized={onFinalized} />));
+  render(withSession(routed(<ScanScreen notes={notes} activeNoteId="note-1" onFinalized={onFinalized} />)));
   return { onFinalized, user: userEvent.setup() };
 };
 

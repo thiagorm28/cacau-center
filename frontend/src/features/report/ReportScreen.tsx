@@ -1,7 +1,6 @@
 import type { DivergenceReport } from "../../api/types";
 import { Banner } from "../../components/ui/Banner";
 import { Screen } from "../../components/ui/Screen";
-import { LogoutButton } from "../auth/LogoutButton";
 import { ReportScanList } from "./ReportScanList";
 
 interface ReportScreenProps {
@@ -25,7 +24,6 @@ export function ReportScreen({ report }: ReportScreenProps) {
     <Screen
       title={`Nota ${report.invoiceNumber}`}
       subtitle={STATUS_LABEL[report.status]}
-      header={<LogoutButton />}
     >
       <div className="flex flex-col gap-6">
         {report.isComplete && hasNoDivergence ? (

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { NavDrawer } from "./NavDrawer";
 
 interface ScreenProps {
   title: string;
@@ -15,6 +16,7 @@ export function Screen({ title, subtitle, header, children }: ScreenProps) {
   return (
     <div className="min-h-dvh bg-choc-800">
       <header className="px-6 pt-10 pb-12">
+        <NavDrawer />
         <h1 className="font-heading text-title text-cream-1">{title}</h1>
         {subtitle === undefined ? null : (
           <p className="mt-1 text-meta text-cream-3">{subtitle}</p>

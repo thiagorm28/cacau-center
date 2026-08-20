@@ -1,4 +1,4 @@
-import { ADMIN, GERENTE, expect, loginAs, test } from "../support/fixtures.ts";
+import { ADMIN, GERENTE, expect, loginAs, logout, test } from "../support/fixtures.ts";
 
 const GERENTE_NAME = "Gil Gerente";
 /** CPF `12345678909` e nascimento `1985-07-20` (semeados pelo control-server). */
@@ -18,7 +18,7 @@ test("E2E-003: admin reseta a senha do gerente, que volta à troca obrigatória"
   await expect(page.getByText(INITIAL_PASSWORD)).toBeVisible();
 
   // Act — o gerente entra com a senha inicial
-  await page.getByRole("button", { name: "Sair" }).click();
+  await logout(page);
   await loginAs(page, { email: GERENTE.email, password: INITIAL_PASSWORD });
 
   // Assert — cai na troca obrigatória, e a senha antiga não vale mais

@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import type { UserRole } from "../api/types";
 import { Banner } from "../components/ui/Banner";
 import { Screen } from "../components/ui/Screen";
-import { LogoutButton } from "../features/auth/LogoutButton";
 import { useSession } from "../session/SessionContext";
 
 interface RequireRoleProps {
@@ -20,7 +19,7 @@ export function RequireRole({ role, children }: RequireRoleProps) {
   const { user } = useSession();
   if (user !== null && (user.role === "admin" || user.role === role)) return <>{children}</>;
   return (
-    <Screen title="Acesso restrito" header={<LogoutButton />}>
+    <Screen title="Acesso restrito">
       <Banner tone="error">
         {role === "operador"
           ? "Esta tela é exclusiva do papel operador."

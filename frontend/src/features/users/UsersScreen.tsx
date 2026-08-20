@@ -14,7 +14,6 @@ import { Dialog } from "../../components/ui/Dialog";
 import { PillButton } from "../../components/ui/PillButton";
 import { Screen } from "../../components/ui/Screen";
 import { useSession } from "../../session/SessionContext";
-import { LogoutButton } from "../auth/LogoutButton";
 import { UserFormDialog } from "./UserFormDialog";
 import type { UserFormValues } from "./UserFormDialog";
 import { initialPasswordFor } from "./initialPassword";
@@ -185,7 +184,7 @@ export function UsersScreen() {
   };
 
   return (
-    <Screen title="Usuários" subtitle="Contas de operador e gerente da loja" header={<LogoutButton />}>
+    <Screen title="Usuários" subtitle="Contas de operador e gerente da loja">
       <div className="flex flex-col gap-4">
         <PillButton fullWidth onClick={() => openModal({ kind: "create" })}>
           Cadastrar usuário

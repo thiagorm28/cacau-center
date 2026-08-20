@@ -44,6 +44,15 @@ export async function loginAs(page: Page, credentials: Credentials): Promise<voi
 }
 
 /**
+ * Sai da sessão como o usuário sai: abrindo a gaveta de navegação e tocando no "Sair"
+ * de dentro dela — desde o ADR-002 o logout não existe mais solto no cabeçalho.
+ */
+export async function logout(page: Page): Promise<void> {
+  await page.getByRole("button", { name: "Abrir menu de navegação" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Sair" }).click();
+}
+
+/**
  * Cliente HTTP autenticado no backend, para montar o estado que a jornada sob teste
  * pressupõe (por exemplo, uma nota já finalizada antes do gerente abrir o histórico).
  */

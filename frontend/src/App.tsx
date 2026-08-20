@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import type { UserRole } from "./api/types";
 import { Screen } from "./components/ui/Screen";
 import { ChangePasswordScreen } from "./features/auth/ChangePasswordScreen";
 import { LoginScreen } from "./features/auth/LoginScreen";
@@ -6,10 +7,21 @@ import { HistoryScreen } from "./features/history/HistoryScreen";
 import { NotesQueueScreen } from "./features/notes/NotesQueueScreen";
 import { UsersScreen } from "./features/users/UsersScreen";
 import { CHANGE_PASSWORD_PATH, RequirePasswordChange } from "./routes/RequirePasswordChange";
+import { getHomePathForRole, NAV_ROUTES } from "./routes/navigation";
 import { RequireRole } from "./routes/RequireRole";
 import { ReportRoute } from "./routes/ReportRoute";
 import { ScanRoute } from "./routes/ScanRoute";
 import { useSession } from "./session/SessionContext";
+
+/**
+ * O papel exigido por cada rota de topo sai do registro de navegação (ADR-005), o mesmo
+ * que a gaveta lê para montar sua lista — nenhum literal de papel sobra aqui.
+ */
+function roleForPath(path: string): UserRole {
+  const item = NAV_ROUTES.find((route) => route.path === path);
+  if (item === undefined) throw new Error(`Rota fora do registro de navegação: ${path}`);
+  return item.role;
+}
 
 function QueueRoute() {
   const navigate = useNavigate();
@@ -34,8 +46,7 @@ export function App() {
 
   // O admin passa por qualquer rota (ADR-006) e cai na gestão de usuários, sua tela
   // inicial natural; o gerente, no histórico.
-  const home =
-    user.role === "operador" ? "/notas" : user.role === "admin" ? "/usuarios" : "/historico";
+  const home = getHomePathForRole(user.role);
   return (
     <RequirePasswordChange>
       <Routes>
@@ -43,7 +54,7 @@ export function App() {
         <Route
           path="/notas"
           element={
-            <RequireRole role="operador">
+            <RequireRole role={roleForPath("/notas")}>
               <QueueRoute />
             </RequireRole>
           }
@@ -51,7 +62,7 @@ export function App() {
         <Route
           path="/notas/:noteId/bipagem"
           element={
-            <RequireRole role="operador">
+            <RequireRole role={roleForPath("/notas")}>
               <ScanRoute />
             </RequireRole>
           }
@@ -60,7 +71,7 @@ export function App() {
         <Route
           path="/historico"
           element={
-            <RequireRole role="gerente">
+            <RequireRole role={roleForPath("/historico")}>
               <HistoryRoute />
             </RequireRole>
           }
@@ -68,7 +79,7 @@ export function App() {
         <Route
           path="/usuarios"
           element={
-            <RequireRole role="admin">
+            <RequireRole role={roleForPath("/usuarios")}>
               <UsersScreen />
             </RequireRole>
           }

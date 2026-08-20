@@ -1,9 +1,18 @@
 import { render, screen } from "@testing-library/react";
+import type { ReactElement } from "react";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { listHistory } from "../../api/client";
 import { buildHistoryEntry } from "../../test/fixtures";
 import { withSession } from "../../test/session";
 import { HistoryScreen } from "./HistoryScreen";
+
+/**
+ * O `Screen` renderiza a gaveta de navegação, que lê a rota atual — daí o `MemoryRouter`
+ * em volta de qualquer tela nos testes.
+ */
+const routed = (screenElement: ReactElement) => <MemoryRouter>{screenElement}</MemoryRouter>;
+
 
 vi.mock("../../api/client", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../api/client")>();
@@ -28,7 +37,7 @@ describe("HistoryScreen", () => {
       }),
     ]);
 
-    render(withSession(<HistoryScreen onOpenReport={vi.fn()} />));
+    render(withSession(routed(<HistoryScreen onOpenReport={vi.fn()} />)));
 
     expect(await screen.findByText("Nota 004005647")).toBeInTheDocument();
     expect(screen.getByText("Com divergência")).toBeInTheDocument();
@@ -41,7 +50,7 @@ describe("HistoryScreen", () => {
   it("UT-067: mostra estado vazio quando não há notas finalizadas", async () => {
     listHistoryMock.mockResolvedValue([]);
 
-    render(withSession(<HistoryScreen onOpenReport={vi.fn()} />));
+    render(withSession(routed(<HistoryScreen onOpenReport={vi.fn()} />)));
 
     expect(await screen.findByText("Nenhuma conferência finalizada ainda.")).toBeInTheDocument();
   });

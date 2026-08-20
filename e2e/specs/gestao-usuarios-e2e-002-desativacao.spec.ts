@@ -1,5 +1,5 @@
 import { HISTORY_INVOICE_NUMBER, PANETONE } from "../support/nfeFixtures.ts";
-import { ADMIN, BackendClient, OPERADOR, expect, loginAs, test } from "../support/fixtures.ts";
+import { ADMIN, BackendClient, OPERADOR, expect, loginAs, logout, test } from "../support/fixtures.ts";
 
 const OPERADOR_NAME = "Ana Operadora";
 
@@ -24,7 +24,7 @@ test("E2E-002: operador desativado perde o login mas continua nomeado no histór
   await expect(row).toContainText("Desativado");
 
   // Act — o operador tenta entrar, mesmo com a senha correta
-  await page.getByRole("button", { name: "Sair" }).click();
+  await logout(page);
   await loginAs(page, OPERADOR);
 
   // Assert — acesso recusado, sem revelar que a conta existe mas está desativada

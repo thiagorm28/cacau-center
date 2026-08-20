@@ -1,11 +1,20 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactElement } from "react";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { deactivateUser, listUsers, resetUserPassword } from "../../api/client";
 import type { SessionUser } from "../../api/types";
 import { buildUser } from "../../test/fixtures";
 import { withSession } from "../../test/session";
 import { UsersScreen } from "./UsersScreen";
+
+/**
+ * O `Screen` renderiza a gaveta de navegação, que lê a rota atual — daí o `MemoryRouter`
+ * em volta de qualquer tela nos testes.
+ */
+const routed = (screenElement: ReactElement) => <MemoryRouter>{screenElement}</MemoryRouter>;
+
 
 vi.mock("../../api/client", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../api/client")>();
@@ -29,7 +38,7 @@ const ADMIN: SessionUser = {
 };
 
 const renderScreen = () => {
-  render(withSession(<UsersScreen />, { user: ADMIN }));
+  render(withSession(routed(<UsersScreen />), { user: ADMIN }));
   return userEvent.setup();
 };
 

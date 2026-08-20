@@ -1,8 +1,17 @@
 import { render, screen } from "@testing-library/react";
+import type { ReactElement } from "react";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { buildReport } from "../../test/fixtures";
 import { withSession } from "../../test/session";
 import { ReportScreen } from "./ReportScreen";
+
+/**
+ * O `Screen` renderiza a gaveta de navegação, que lê a rota atual — daí o `MemoryRouter`
+ * em volta de qualquer tela nos testes.
+ */
+const routed = (screenElement: ReactElement) => <MemoryRouter>{screenElement}</MemoryRouter>;
+
 
 const missingItem = {
   itemId: "item-1",
@@ -22,7 +31,7 @@ describe("ReportScreen", () => {
       missingItems: [missingItem],
     });
 
-    render(withSession(<ReportScreen report={report} />));
+    render(withSession(routed(<ReportScreen report={report} />)));
 
     expect(screen.getByText("Itens faltantes")).toBeInTheDocument();
     expect(screen.getByText("Panetone Trufado 400g")).toBeInTheDocument();
@@ -32,7 +41,7 @@ describe("ReportScreen", () => {
   it("UT-064: renderiza a confirmação 'tudo certo' para nota completa", () => {
     const report = buildReport({ status: "completed", isComplete: true });
 
-    render(withSession(<ReportScreen report={report} />));
+    render(withSession(routed(<ReportScreen report={report} />)));
 
     expect(screen.getByText(/Tudo certo/)).toBeInTheDocument();
     expect(screen.getByText("Nenhum item faltante.")).toBeInTheDocument();
@@ -54,7 +63,7 @@ describe("ReportScreen", () => {
       ],
     });
 
-    render(withSession(<ReportScreen report={report} />));
+    render(withSession(routed(<ReportScreen report={report} />)));
 
     const exceeded = screen.getByRole("heading", { name: "Caixas excedentes" });
     const section = exceeded.closest("section");
