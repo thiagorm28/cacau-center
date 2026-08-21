@@ -1,0 +1,51 @@
+# Deploy automático (VPS Hostinger + Docker Compose + Caddy, ver DEPLOY.md).
+#
+# Todo push em `main` roda typecheck + testes unitários; se passar, conecta na VPS
+# via SSH e faz `git pull` + `docker compose up -d --build` no checkout já existente
+# lá (provisionado manualmente seguindo DEPLOY.md). O `.env` de produção inteiro vem
+# do secret `PROD_ENV_FILE` e é reescrito na VPS a cada deploy — o GitHub é a fonte
+# da verdade dos segredos de aplicação; editar `.env` direto na VPS é sobrescrito no
+# próximo push.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          # `envs:` abaixo exporta esta env do runner pro shell remoto de forma segura
+          # (preserva quebras de linha e caracteres especiais do .env multilinha).
+          PROD_ENV_FILE: ${{ secrets.PROD_ENV_FILE }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          envs: PROD_ENV_FILE
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+            git fetch origin main
+            git reset --hard origin/main
+            echo "$PROD_ENV_FILE" > .env
+            docker compose -f docker-compose.prod.yaml up -d --build
+            docker image prune -f
