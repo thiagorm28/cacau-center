@@ -15,6 +15,23 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      # A suíte de integração do backend (TestApp.ts) fala com um Postgres real em
+      # localhost:5432 e espera o banco `cacau_test` já existente — ela só roda
+      # migrations, não cria o database.
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: cacau
+          POSTGRES_PASSWORD: cacau
+          POSTGRES_DB: cacau_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cacau -d cacau_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
