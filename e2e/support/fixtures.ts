@@ -39,7 +39,8 @@ export { expect } from "@playwright/test";
 export async function loginAs(page: Page, credentials: Credentials): Promise<void> {
   await page.goto("/");
   await page.getByLabel("E-mail").fill(credentials.email);
-  await page.getByLabel("Senha").fill(credentials.password);
+  // `exact` porque o botão de ver a senha ao lado do campo se chama "Mostrar senha".
+  await page.getByLabel("Senha", { exact: true }).fill(credentials.password);
   await page.getByRole("button", { name: "Entrar" }).click();
 }
 
@@ -91,6 +92,18 @@ export class BackendClient {
     });
     expect(response.status(), "finalização da nota").toBe(200);
   }
+}
+
+/**
+ * Card de uma nota na fila de conferência. Desde o ADR-003 o card não é mais clicável
+ * inteiro: ele é um item de lista com dois botões próprios ("Ver produtos" e "Excluir").
+ */
+export const queueNoteCard = (page: Page, invoiceNumber: string) =>
+  page.getByRole("listitem").filter({ hasText: `Nota ${invoiceNumber}` });
+
+/** Abre a bipagem de uma nota específica pelo botão explícito do card (ADR-003). */
+export async function openNoteFromQueue(page: Page, invoiceNumber: string): Promise<void> {
+  await queueNoteCard(page, invoiceNumber).getByRole("button", { name: "Ver produtos" }).click();
 }
 
 /** Contador `confirmadas/esperadas` de um item na tela de bipagem. */

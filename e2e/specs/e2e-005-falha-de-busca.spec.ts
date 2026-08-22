@@ -4,7 +4,14 @@ import {
   REFERENCE_NOTE_1,
   UNKNOWN_INVOICE_NUMBER,
 } from "../support/nfeFixtures.ts";
-import { OPERADOR, expect, loginAs, test } from "../support/fixtures.ts";
+import {
+  OPERADOR,
+  expect,
+  loginAs,
+  openNoteFromQueue,
+  queueNoteCard,
+  test,
+} from "../support/fixtures.ts";
 
 /**
  * E2E-005 — Falha de busca (US-003, US-003.EC-2).
@@ -22,9 +29,9 @@ test("E2E-005: número inexistente mostra erro e não impede a busca seguinte", 
   await loginAs(page, OPERADOR);
   await page.getByLabel("Número de faturamento").fill(REFERENCE_NOTE_1);
   await page.getByRole("button", { name: "Buscar nota" }).click();
-  const existingCard = page.getByRole("button", { name: new RegExp(`Nota ${REFERENCE_NOTE_1}`) });
+  const existingCard = queueNoteCard(page, REFERENCE_NOTE_1);
   await expect(existingCard).toBeVisible();
-  await existingCard.click();
+  await openNoteFromQueue(page, REFERENCE_NOTE_1);
   await expect(page.getByRole("heading", { name: `Nota ${REFERENCE_NOTE_1}` })).toBeVisible();
   await scanner.scan(PANETONE.cProd, async () => {
     await expect(page.getByLabel(`${PANETONE.description}: caixas confirmadas`)).toHaveText("1/10");
@@ -47,9 +54,7 @@ test("E2E-005: número inexistente mostra erro e não impede a busca seguinte", 
   await page.getByRole("button", { name: "Buscar nota" }).click();
 
   // Assert — a busca funciona normalmente e as duas notas convivem na fila
-  await expect(
-    page.getByRole("button", { name: new RegExp(`Nota ${REAL_INVOICE_NUMBER}`) }),
-  ).toBeVisible();
+  await expect(queueNoteCard(page, REAL_INVOICE_NUMBER)).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "Nota não encontrada" })).toHaveCount(0);
   await expect(existingCard).toContainText("1/10");
 });

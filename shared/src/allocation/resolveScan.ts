@@ -1,3 +1,4 @@
+import { isCloserToCompletion, parseOpenedAt } from "./completionOrder.js";
 import type { PendingNote, PendingNoteItem, ScanResolution } from "./types.js";
 
 /**
@@ -28,15 +29,6 @@ const sumBy = (
   pick: (item: PendingNoteItem) => number,
 ): number => items.reduce((total, item) => total + pick(item), 0);
 
-/**
- * `openedAt` inválido é tratado como "mais recente possível" para que notas com
- * timestamp válido sempre vençam o desempate FIFO.
- */
-const parseOpenedAt = (openedAt: string): number => {
-  const parsed = Date.parse(openedAt);
-  return Number.isNaN(parsed) ? Number.POSITIVE_INFINITY : parsed;
-};
-
 const buildCandidate = (note: PendingNote, item: PendingNoteItem): ScanCandidate => ({
   note,
   item,
@@ -59,19 +51,23 @@ const collectCandidates = (
     .filter((candidate) => candidate.totalExpected > 0);
 
 /**
- * Compara os percentuais de conclusão resultantes por multiplicação cruzada, evitando
- * o erro de arredondamento de uma divisão em ponto flutuante — o empate de US-009.EC-1
- * precisa ser detectado de forma exata. Empate exato resolve pela nota aberta há mais
- * tempo (FIFO); persistindo o empate, mantém-se a ordem de entrada.
+ * Adaptador fino sobre `isCloserToCompletion` (ADR-006): a comparação cruzada e o
+ * desempate FIFO vivem em `completionOrder.ts`, reaproveitados pelo atalho de bipagem
+ * rápida.
  */
-const isBetterCandidate = (candidate: ScanCandidate, incumbent: ScanCandidate): boolean => {
-  const candidateRatio = candidate.confirmedAfterScan * incumbent.totalExpected;
-  const incumbentRatio = incumbent.confirmedAfterScan * candidate.totalExpected;
-  if (candidateRatio !== incumbentRatio) {
-    return candidateRatio > incumbentRatio;
-  }
-  return candidate.openedAtMs < incumbent.openedAtMs;
-};
+const isBetterCandidate = (candidate: ScanCandidate, incumbent: ScanCandidate): boolean =>
+  isCloserToCompletion(
+    {
+      confirmedQty: candidate.confirmedAfterScan,
+      totalExpected: candidate.totalExpected,
+      openedAtMs: candidate.openedAtMs,
+    },
+    {
+      confirmedQty: incumbent.confirmedAfterScan,
+      totalExpected: incumbent.totalExpected,
+      openedAtMs: incumbent.openedAtMs,
+    },
+  );
 
 const selectBestCandidate = (
   candidates: readonly ScanCandidate[],

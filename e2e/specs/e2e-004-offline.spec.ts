@@ -1,5 +1,12 @@
 import { OFFLINE_INVOICE_NUMBER, PANETONE } from "../support/nfeFixtures.ts";
-import { OPERADOR, expect, itemCounter, loginAs, test } from "../support/fixtures.ts";
+import {
+  OPERADOR,
+  expect,
+  itemCounter,
+  loginAs,
+  openNoteFromQueue,
+  test,
+} from "../support/fixtures.ts";
 
 /**
  * E2E-004 — Operação offline (US-013, US-014) e US-017.EC-1.
@@ -17,7 +24,7 @@ test("E2E-004: bipagens feitas offline são sincronizadas sozinhas ao reconectar
   await loginAs(page, OPERADOR);
   await page.getByLabel("Número de faturamento").fill(OFFLINE_INVOICE_NUMBER);
   await page.getByRole("button", { name: "Buscar nota" }).click();
-  await page.getByRole("button", { name: new RegExp(`Nota ${OFFLINE_INVOICE_NUMBER}`) }).click();
+  await openNoteFromQueue(page, OFFLINE_INVOICE_NUMBER);
   await expect(page.getByRole("heading", { name: `Nota ${OFFLINE_INVOICE_NUMBER}` })).toBeVisible();
 
   const counter = itemCounter(page, PANETONE.description);

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type PillButtonVariant = "primary" | "secondary" | "ghost";
+export type PillButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 interface PillButtonProps {
   children: ReactNode;
@@ -16,6 +16,8 @@ const VARIANTS: Record<PillButtonVariant, string> = {
   primary: "bg-accent text-surface shadow-md hover:bg-accent-700",
   secondary: "bg-accent-100 text-accent-700 shadow-sm hover:bg-accent-300",
   ghost: "bg-transparent text-choc-700 hover:bg-accent-100",
+  // Mesmo tom do `Banner` de erro: a ação destrutiva não introduz vermelho fora da paleta.
+  danger: "bg-choc-700 text-cream-1 shadow-md hover:bg-choc-800",
 };
 
 export function PillButton({

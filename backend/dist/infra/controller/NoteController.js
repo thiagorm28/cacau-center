@@ -17,6 +17,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NoteController = void 0;
 const common_1 = require("@nestjs/common");
+const DeleteNote_1 = __importDefault(require("../../application/usecase/DeleteNote"));
 const FinalizeNote_1 = __importDefault(require("../../application/usecase/FinalizeNote"));
 const GetNote_1 = __importDefault(require("../../application/usecase/GetNote"));
 const GetNoteReport_1 = __importDefault(require("../../application/usecase/GetNoteReport"));
@@ -30,13 +31,14 @@ const NoteDto_1 = require("./dto/NoteDto");
 /** Um id fora do formato UUID nunca corresponde a uma nota — responde 404, não 400. */
 const noteIdParam = () => new common_1.ParseUUIDPipe({ exceptionFactory: () => new DomainErrors_1.NotFoundError("Nota não encontrada") });
 let NoteController = class NoteController {
-    constructor(searchNote, listNotes, getNote, finalizeNote, getNoteReport, listNoteHistory) {
+    constructor(searchNote, listNotes, getNote, finalizeNote, getNoteReport, listNoteHistory, deleteNote) {
         this.searchNote = searchNote;
         this.listNotes = listNotes;
         this.getNote = getNote;
         this.finalizeNote = finalizeNote;
         this.getNoteReport = getNoteReport;
         this.listNoteHistory = listNoteHistory;
+        this.deleteNote = deleteNote;
     }
     create(body, user) {
         return this.searchNote.execute({
@@ -64,6 +66,10 @@ let NoteController = class NoteController {
             operatorId: user.userId,
             confirmIncomplete: body.confirmIncomplete === true,
         });
+    }
+    /** Exclusão definitiva da nota em conferência (ADR-001/ADR-005): sem corpo, 204. */
+    async remove(noteId, user) {
+        await this.deleteNote.execute({ noteId, operatorId: user.userId });
     }
     report(noteId) {
         return this.getNoteReport.execute({ noteId });
@@ -114,6 +120,16 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], NoteController.prototype, "finalize", null);
 __decorate([
+    (0, Roles_1.Roles)("operador"),
+    (0, common_1.Delete)(":id"),
+    (0, common_1.HttpCode)(204),
+    __param(0, (0, common_1.Param)("id", noteIdParam())),
+    __param(1, (0, CurrentUser_1.CurrentUser)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], NoteController.prototype, "remove", null);
+__decorate([
     (0, common_1.Get)(":id/report"),
     __param(0, (0, common_1.Param)("id", noteIdParam())),
     __metadata("design:type", Function),
@@ -128,11 +144,13 @@ exports.NoteController = NoteController = __decorate([
     __param(3, (0, common_1.Inject)(FinalizeNote_1.default)),
     __param(4, (0, common_1.Inject)(GetNoteReport_1.default)),
     __param(5, (0, common_1.Inject)(ListNoteHistory_1.default)),
+    __param(6, (0, common_1.Inject)(DeleteNote_1.default)),
     __metadata("design:paramtypes", [SearchNote_1.default,
         ListNotes_1.default,
         GetNote_1.default,
         FinalizeNote_1.default,
         GetNoteReport_1.default,
-        ListNoteHistory_1.default])
+        ListNoteHistory_1.default,
+        DeleteNote_1.default])
 ], NoteController);
 //# sourceMappingURL=NoteController.js.map

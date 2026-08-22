@@ -4,12 +4,20 @@ import {
   REFERENCE_NOTE_2,
   TRUFA,
 } from "../support/nfeFixtures.ts";
-import { OPERADOR, expect, itemCounter, loginAs, test } from "../support/fixtures.ts";
+import {
+  OPERADOR,
+  expect,
+  itemCounter,
+  loginAs,
+  openNoteFromQueue,
+  queueNoteCard,
+  test,
+} from "../support/fixtures.ts";
 
 const searchNote = async (page: import("@playwright/test").Page, invoiceNumber: string) => {
   await page.getByLabel("Número de faturamento").fill(invoiceNumber);
   await page.getByRole("button", { name: "Buscar nota" }).click();
-  await expect(page.getByRole("button", { name: new RegExp(`Nota ${invoiceNumber}`) })).toBeVisible();
+  await expect(queueNoteCard(page, invoiceNumber)).toBeVisible();
 };
 
 /**
@@ -32,7 +40,7 @@ test("E2E-002: bipagens vão para a nota mais próxima de fechar e a nota 1 fech
   await searchNote(page, REFERENCE_NOTE_2);
 
   // Act — bipa o item exclusivo e depois os 10 panetones, tudo na tela da nota 2
-  await page.getByRole("button", { name: new RegExp(`Nota ${REFERENCE_NOTE_2}`) }).click();
+  await openNoteFromQueue(page, REFERENCE_NOTE_2);
   await expect(page.getByRole("heading", { name: `Nota ${REFERENCE_NOTE_2}` })).toBeVisible();
 
   const trufaCounter = itemCounter(page, TRUFA.description);
@@ -51,15 +59,13 @@ test("E2E-002: bipagens vão para a nota mais próxima de fechar e a nota 1 fech
 
   // Assert — a nota 1 continua intocada e é a única ainda em conferência
   await page.goto("/notas");
-  const note1Card = page.getByRole("button", { name: new RegExp(`Nota ${REFERENCE_NOTE_1}`) });
+  const note1Card = queueNoteCard(page, REFERENCE_NOTE_1);
   await expect(note1Card).toBeVisible();
   await expect(note1Card).toContainText("0/10");
-  await expect(
-    page.getByRole("button", { name: new RegExp(`Nota ${REFERENCE_NOTE_2}`) }),
-  ).toHaveCount(0);
+  await expect(queueNoteCard(page, REFERENCE_NOTE_2)).toHaveCount(0);
 
   // Act — finaliza a nota 1 manualmente, assumindo a divergência
-  await note1Card.click();
+  await openNoteFromQueue(page, REFERENCE_NOTE_1);
   await page.getByRole("button", { name: "Finalizar conferência" }).click();
   const dialog = page.getByRole("dialog", { name: "Finalizar mesmo assim?" });
   await expect(dialog).toContainText("Ainda há 1 item pendente");

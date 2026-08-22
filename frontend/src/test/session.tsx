@@ -6,6 +6,7 @@ import type { SessionStatus } from "../session/SessionContext";
 interface SessionOverrides {
   user?: SessionUser | null;
   status?: SessionStatus;
+  signIn?: (email: string, password: string) => Promise<void>;
   signOut?: () => Promise<void>;
   applyUser?: (user: SessionUser) => void;
 }
@@ -30,7 +31,7 @@ export function withSession(children: ReactElement, overrides: SessionOverrides 
         status: overrides.status ?? (user === null ? "anonymous" : "authenticated"),
         user,
         expired: false,
-        signIn: () => Promise.resolve(),
+        signIn: overrides.signIn ?? (() => Promise.resolve()),
         signOut: overrides.signOut ?? (() => Promise.resolve()),
         applyUser: overrides.applyUser ?? (() => undefined),
       }}

@@ -1,15 +1,8 @@
+import { isCloserToCompletion, parseOpenedAt } from "./completionOrder.js";
 const isPending = (item) => item.confirmedQty < item.expectedQty;
 const isFullyConfirmed = (item) => item.confirmedQty >= item.expectedQty;
 const matchesScannedCode = (item, scannedCode) => item.cProd === scannedCode || item.cEan === scannedCode;
 const sumBy = (items, pick) => items.reduce((total, item) => total + pick(item), 0);
-/**
- * `openedAt` inválido é tratado como "mais recente possível" para que notas com
- * timestamp válido sempre vençam o desempate FIFO.
- */
-const parseOpenedAt = (openedAt) => {
-    const parsed = Date.parse(openedAt);
-    return Number.isNaN(parsed) ? Number.POSITIVE_INFINITY : parsed;
-};
 const buildCandidate = (note, item) => ({
     note,
     item,
@@ -23,19 +16,19 @@ const collectCandidates = (openNotes, scannedCode, isEligible) => openNotes
     .map((item) => buildCandidate(note, item)))
     .filter((candidate) => candidate.totalExpected > 0);
 /**
- * Compara os percentuais de conclusão resultantes por multiplicação cruzada, evitando
- * o erro de arredondamento de uma divisão em ponto flutuante — o empate de US-009.EC-1
- * precisa ser detectado de forma exata. Empate exato resolve pela nota aberta há mais
- * tempo (FIFO); persistindo o empate, mantém-se a ordem de entrada.
+ * Adaptador fino sobre `isCloserToCompletion` (ADR-006): a comparação cruzada e o
+ * desempate FIFO vivem em `completionOrder.ts`, reaproveitados pelo atalho de bipagem
+ * rápida.
  */
-const isBetterCandidate = (candidate, incumbent) => {
-    const candidateRatio = candidate.confirmedAfterScan * incumbent.totalExpected;
-    const incumbentRatio = incumbent.confirmedAfterScan * candidate.totalExpected;
-    if (candidateRatio !== incumbentRatio) {
-        return candidateRatio > incumbentRatio;
-    }
-    return candidate.openedAtMs < incumbent.openedAtMs;
-};
+const isBetterCandidate = (candidate, incumbent) => isCloserToCompletion({
+    confirmedQty: candidate.confirmedAfterScan,
+    totalExpected: candidate.totalExpected,
+    openedAtMs: candidate.openedAtMs,
+}, {
+    confirmedQty: incumbent.confirmedAfterScan,
+    totalExpected: incumbent.totalExpected,
+    openedAtMs: incumbent.openedAtMs,
+});
 const selectBestCandidate = (candidates) => candidates.reduce((best, candidate) => best === undefined || isBetterCandidate(candidate, best) ? candidate : best, undefined);
 /**
  * Decide a qual nota aberta creditar uma bipagem (ADR-001).

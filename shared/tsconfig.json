@@ -15,7 +15,12 @@
     "sourceMap": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    // Resolve `shared` para o fonte (mesma convenção do frontend), para que o teste da
+    // raiz do pacote (IT-012) tipe sem depender de um `dist/` já construído.
+    "paths": {
+      "shared": ["./src/index.ts"]
+    }
   },
   "include": ["src/**/*.ts"]
 }

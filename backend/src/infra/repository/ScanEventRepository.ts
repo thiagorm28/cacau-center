@@ -22,6 +22,8 @@ export interface ScanEventRepository {
    * identificadas entram no relatório da primeira nota finalizada depois delas).
    */
   claimUnidentified(noteId: string): Promise<number>;
+  /** Apaga todas as bipagens da nota; primeiro passo da exclusão em cascata (ADR-004). */
+  deleteByNoteId(noteId: string): Promise<number>;
 }
 
 type ScanEventRow = typeof scanEvents.$inferSelect;
@@ -70,6 +72,14 @@ export default class ScanEventRepositoryDatabase implements ScanEventRepository 
       .update(scanEvents)
       .set({ noteId })
       .where(and(eq(scanEvents.result, "unidentified"), isNull(scanEvents.noteId)))
+      .returning({ id: scanEvents.id });
+    return rows.length;
+  }
+
+  async deleteByNoteId(noteId: string): Promise<number> {
+    const rows = await this.exec
+      .delete(scanEvents)
+      .where(eq(scanEvents.noteId, noteId))
       .returning({ id: scanEvents.id });
     return rows.length;
   }

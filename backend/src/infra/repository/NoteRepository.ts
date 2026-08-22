@@ -47,6 +47,8 @@ export interface NoteRepository {
   /** Credita uma caixa ao item; `false` quando a quantidade esperada já foi atingida. */
   incrementConfirmedQty(itemId: string): Promise<boolean>;
   close(noteId: string, status: NoteStatus, closedBy: string, closedAt: Date): Promise<void>;
+  /** Apaga os `note_items` e depois a linha de `invoice_notes`. Quem chama precisa ter apagado os `scan_events` antes. */
+  delete(noteId: string): Promise<void>;
 }
 
 type NoteRow = typeof invoiceNotes.$inferSelect;
@@ -193,6 +195,16 @@ export default class NoteRepositoryDatabase implements NoteRepository {
       .update(invoiceNotes)
       .set({ status, closedBy, closedAt })
       .where(eq(invoiceNotes.id, noteId));
+  }
+
+  /**
+   * Exclusão definitiva da nota (ADR-001). A ordem é imposta pela FK
+   * `note_items.note_id → invoice_notes.id`, que é `no action` de propósito (ADR-004):
+   * sem apagar os itens antes, o `DELETE` da nota viola a constraint.
+   */
+  async delete(noteId: string): Promise<void> {
+    await this.exec.delete(noteItems).where(eq(noteItems.noteId, noteId));
+    await this.exec.delete(invoiceNotes).where(eq(invoiceNotes.id, noteId));
   }
 
   private loadItems(noteIds: readonly string[]): Promise<ItemRow[]> {

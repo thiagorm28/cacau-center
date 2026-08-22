@@ -2,13 +2,11 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { changePassword } from "../../api/client";
 import { Banner } from "../../components/ui/Banner";
+import { PasswordField } from "../../components/ui/PasswordField";
 import { PillButton } from "../../components/ui/PillButton";
 import { Screen } from "../../components/ui/Screen";
 import { useSession } from "../../session/SessionContext";
 import { LogoutButton } from "./LogoutButton";
-
-const FIELD =
-  "w-full rounded-pill bg-surface px-5 py-3 text-item text-text shadow-sm outline-none placeholder:text-cream-3 focus:ring-2 focus:ring-accent";
 
 export const PASSWORDS_DO_NOT_MATCH = "As senhas não coincidem";
 
@@ -60,28 +58,20 @@ export function ChangePasswordScreen({ onChanged }: ChangePasswordScreenProps) {
       header={<LogoutButton />}
     >
       <form onSubmit={submit} className="flex flex-col gap-4">
-        <label className="section-label text-choc-600" htmlFor="new-password">
-          Nova senha
-        </label>
-        <input
+        <PasswordField
           id="new-password"
-          type="password"
+          label="Nova senha"
           value={newPassword}
           autoComplete="new-password"
-          onChange={(event) => setNewPassword(event.target.value)}
-          className={FIELD}
+          onChange={setNewPassword}
         />
         <p className="text-meta text-choc-600">Use ao menos 8 caracteres, com pelo menos 1 número.</p>
-        <label className="section-label text-choc-600" htmlFor="confirm-password">
-          Confirme a nova senha
-        </label>
-        <input
+        <PasswordField
           id="confirm-password"
-          type="password"
+          label="Confirme a nova senha"
           value={confirmPassword}
           autoComplete="new-password"
-          onChange={(event) => setConfirmPassword(event.target.value)}
-          className={FIELD}
+          onChange={setConfirmPassword}
         />
         {error === null ? null : <Banner tone="error">{error}</Banner>}
         <PillButton type="submit" fullWidth disabled={isSubmitting}>

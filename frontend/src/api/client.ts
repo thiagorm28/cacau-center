@@ -87,6 +87,8 @@ const post = <T>(path: string, body?: unknown): Promise<T> =>
 const patch = <T>(path: string, body: unknown): Promise<T> =>
   request<T>(path, { method: "PATCH", body: JSON.stringify(body) });
 
+const del = <T>(path: string): Promise<T> => request<T>(path, { method: "DELETE" });
+
 export const login = (email: string, password: string): Promise<SessionUser> =>
   post<SessionUser>("/auth/login", { email, password });
 
@@ -134,6 +136,12 @@ export const listNotes = (status?: NoteStatus): Promise<readonly NoteView[]> =>
 
 export const getNote = (noteId: string): Promise<NoteView> =>
   request<NoteView>(`/notes/${noteId}`);
+
+/**
+ * Exclusão definitiva de uma nota em conferência (ADR-001): o backend responde `204` sem
+ * corpo, e `request()` já devolve `undefined` nesse caso.
+ */
+export const deleteNote = (noteId: string): Promise<void> => del<void>(`/notes/${noteId}`);
 
 export const finalizeNote = (noteId: string, confirmIncomplete: boolean): Promise<FinalizeResult> =>
   post<FinalizeResult>(`/notes/${noteId}/finalize`, { confirmIncomplete });

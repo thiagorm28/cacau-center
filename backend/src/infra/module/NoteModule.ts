@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import DeleteNote from "../../application/usecase/DeleteNote";
 import FinalizeNote from "../../application/usecase/FinalizeNote";
 import GetNote from "../../application/usecase/GetNote";
 import GetNoteReport from "../../application/usecase/GetNoteReport";
@@ -18,6 +19,7 @@ import { DEFAULT_NFE_BASE_URL, optionalEnv, requireEnv } from "../util/Env";
     FinalizeNote,
     GetNoteReport,
     ListNoteHistory,
+    DeleteNote,
     {
       provide: "NfeGateway",
       // O código da empresa é fixo por loja e nunca fica no código-fonte (ADR-011).

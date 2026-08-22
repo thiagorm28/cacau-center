@@ -107,6 +107,15 @@ class NoteRepositoryDatabase {
             .set({ status, closedBy, closedAt })
             .where((0, drizzle_orm_1.eq)(schema_1.invoiceNotes.id, noteId));
     }
+    /**
+     * Exclusão definitiva da nota (ADR-001). A ordem é imposta pela FK
+     * `note_items.note_id → invoice_notes.id`, que é `no action` de propósito (ADR-004):
+     * sem apagar os itens antes, o `DELETE` da nota viola a constraint.
+     */
+    async delete(noteId) {
+        await this.exec.delete(schema_1.noteItems).where((0, drizzle_orm_1.eq)(schema_1.noteItems.noteId, noteId));
+        await this.exec.delete(schema_1.invoiceNotes).where((0, drizzle_orm_1.eq)(schema_1.invoiceNotes.id, noteId));
+    }
     loadItems(noteIds) {
         return this.exec
             .select()

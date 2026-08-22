@@ -11,6 +11,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NoteModule = void 0;
 const common_1 = require("@nestjs/common");
+const DeleteNote_1 = __importDefault(require("../../application/usecase/DeleteNote"));
 const FinalizeNote_1 = __importDefault(require("../../application/usecase/FinalizeNote"));
 const GetNote_1 = __importDefault(require("../../application/usecase/GetNote"));
 const GetNoteReport_1 = __importDefault(require("../../application/usecase/GetNoteReport"));
@@ -33,6 +34,7 @@ exports.NoteModule = NoteModule = __decorate([
             FinalizeNote_1.default,
             GetNoteReport_1.default,
             ListNoteHistory_1.default,
+            DeleteNote_1.default,
             {
                 provide: "NfeGateway",
                 // O código da empresa é fixo por loja e nunca fica no código-fonte (ADR-011).

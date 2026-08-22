@@ -1,4 +1,5 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, ParseUUIDPipe, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Inject, Param, ParseUUIDPipe, Post, Query } from "@nestjs/common";
+import DeleteNote from "../../application/usecase/DeleteNote";
 import FinalizeNote from "../../application/usecase/FinalizeNote";
 import GetNote from "../../application/usecase/GetNote";
 import GetNoteReport from "../../application/usecase/GetNoteReport";
@@ -24,6 +25,7 @@ export class NoteController {
     @Inject(FinalizeNote) private readonly finalizeNote: FinalizeNote,
     @Inject(GetNoteReport) private readonly getNoteReport: GetNoteReport,
     @Inject(ListNoteHistory) private readonly listNoteHistory: ListNoteHistory,
+    @Inject(DeleteNote) private readonly deleteNote: DeleteNote,
   ) {}
 
   @Roles("operador")
@@ -70,6 +72,17 @@ export class NoteController {
       operatorId: user.userId,
       confirmIncomplete: body.confirmIncomplete === true,
     });
+  }
+
+  /** Exclusão definitiva da nota em conferência (ADR-001/ADR-005): sem corpo, 204. */
+  @Roles("operador")
+  @Delete(":id")
+  @HttpCode(204)
+  async remove(
+    @Param("id", noteIdParam()) noteId: string,
+    @CurrentUser() user: SessionUser,
+  ): Promise<void> {
+    await this.deleteNote.execute({ noteId, operatorId: user.userId });
   }
 
   @Get(":id/report")

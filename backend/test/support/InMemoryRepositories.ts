@@ -172,6 +172,13 @@ export class InMemoryNoteRepository implements NoteRepository {
     record.closedBy = closedBy;
     record.closedAt = closedAt;
   }
+
+  /** Some com a nota e seus itens de uma vez, como o `DELETE` real das duas tabelas. */
+  async delete(noteId: string): Promise<void> {
+    const index = this.records.findIndex((candidate) => candidate.noteId === noteId);
+    if (index === -1) return;
+    this.records.splice(index, 1);
+  }
 }
 
 export class InMemoryScanEventRepository implements ScanEventRepository {
@@ -213,6 +220,14 @@ export class InMemoryScanEventRepository implements ScanEventRepository {
     );
     for (const record of claimed) record.noteId = noteId;
     return claimed.length;
+  }
+
+  async deleteByNoteId(noteId: string): Promise<number> {
+    const removed = this.records.filter((record) => record.noteId === noteId);
+    for (const record of removed) {
+      this.records.splice(this.records.indexOf(record), 1);
+    }
+    return removed.length;
   }
 }
 

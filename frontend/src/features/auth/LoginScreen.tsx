@@ -1,12 +1,10 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Banner } from "../../components/ui/Banner";
+import { FIELD, PasswordField } from "../../components/ui/PasswordField";
 import { PillButton } from "../../components/ui/PillButton";
 import { Screen } from "../../components/ui/Screen";
 import { useSession } from "../../session/SessionContext";
-
-const FIELD =
-  "w-full rounded-pill bg-surface px-5 py-3 text-item text-text shadow-sm outline-none placeholder:text-cream-3 focus:ring-2 focus:ring-accent";
 
 export function LoginScreen() {
   const { signIn, expired } = useSession();
@@ -43,16 +41,12 @@ export function LoginScreen() {
           onChange={(event) => setEmail(event.target.value)}
           className={FIELD}
         />
-        <label className="section-label text-choc-600" htmlFor="password">
-          Senha
-        </label>
-        <input
+        <PasswordField
           id="password"
-          type="password"
+          label="Senha"
           value={password}
           autoComplete="current-password"
-          onChange={(event) => setPassword(event.target.value)}
-          className={FIELD}
+          onChange={setPassword}
         />
         {expired && error === null ? (
           // Metade "solicitado a autenticar novamente" da US-015.EC-2: sem esta mensagem, o

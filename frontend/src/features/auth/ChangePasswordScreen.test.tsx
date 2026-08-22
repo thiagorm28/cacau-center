@@ -1,11 +1,11 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError, changePassword } from "../../api/client";
 import { OPERADOR, withSession } from "../../test/session";
-import { ChangePasswordScreen } from "./ChangePasswordScreen";
+import { ChangePasswordScreen, PASSWORDS_DO_NOT_MATCH } from "./ChangePasswordScreen";
 
 /**
  * O `Screen` renderiza a gaveta de navegação, que lê a rota atual — daí o `MemoryRouter`
@@ -81,5 +81,42 @@ describe("ChangePasswordScreen", () => {
       "A senha deve conter ao menos um dígito",
     );
     expect(onChanged).not.toHaveBeenCalled();
+  });
+
+  it("UT-022: os dois campos alternam a visibilidade de forma independente", async () => {
+    const { user } = renderScreen();
+    const nova = screen.getByLabelText("Nova senha");
+    const confirmacao = screen.getByLabelText("Confirme a nova senha");
+    // Cada campo traz o seu próprio botão dentro do mesmo `div` do `<input>`.
+    const toggleOf = (input: HTMLElement) =>
+      within(input.parentElement as HTMLElement).getByRole("button");
+
+    // Act — mostra só a "Nova senha"
+    await user.click(toggleOf(nova));
+
+    expect(nova).toHaveAttribute("type", "text");
+    expect(confirmacao).toHaveAttribute("type", "password");
+
+    // Act — mostra também a confirmação e volta a ocultar a nova senha
+    await user.click(toggleOf(confirmacao));
+    await user.click(toggleOf(nova));
+
+    expect(nova).toHaveAttribute("type", "password");
+    expect(confirmacao).toHaveAttribute("type", "text");
+  });
+
+  it("UT-023: erro de senhas diferentes não reseta a visibilidade de nenhum dos campos", async () => {
+    const { user } = renderScreen();
+    const nova = screen.getByLabelText("Nova senha");
+    const confirmacao = screen.getByLabelText("Confirme a nova senha");
+
+    // Arrange — só a "Nova senha" visível antes de tentar salvar
+    await user.click(within(nova.parentElement as HTMLElement).getByRole("button"));
+
+    await fill(user, "chocolate1", "chocolate2");
+
+    expect(screen.getByRole("status")).toHaveTextContent(PASSWORDS_DO_NOT_MATCH);
+    expect(nova).toHaveAttribute("type", "text");
+    expect(confirmacao).toHaveAttribute("type", "password");
   });
 });

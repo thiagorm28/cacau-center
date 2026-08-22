@@ -4,7 +4,14 @@ import {
   PANETONE,
   UNMATCHED_CODES,
 } from "../support/nfeFixtures.ts";
-import { OPERADOR, expect, itemCounter, loginAs, test } from "../support/fixtures.ts";
+import {
+  OPERADOR,
+  expect,
+  itemCounter,
+  loginAs,
+  openNoteFromQueue,
+  test,
+} from "../support/fixtures.ts";
 
 /**
  * E2E-003 — Bipagem sem correspondência (US-006, US-007).
@@ -21,9 +28,7 @@ test("E2E-003: código sem correspondência vai para seleção manual e para cai
   await loginAs(page, OPERADOR);
   await page.getByLabel("Número de faturamento").fill(MANUAL_SELECTION_INVOICE_NUMBER);
   await page.getByRole("button", { name: "Buscar nota" }).click();
-  await page
-    .getByRole("button", { name: new RegExp(`Nota ${MANUAL_SELECTION_INVOICE_NUMBER}`) })
-    .click();
+  await openNoteFromQueue(page, MANUAL_SELECTION_INVOICE_NUMBER);
   await expect(
     page.getByRole("heading", { name: `Nota ${MANUAL_SELECTION_INVOICE_NUMBER}` }),
   ).toBeVisible();

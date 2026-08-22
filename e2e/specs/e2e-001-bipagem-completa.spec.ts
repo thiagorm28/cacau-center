@@ -1,5 +1,13 @@
 import { PANETONE, REAL_INVOICE_NUMBER, REAL_NOTE_QUANTITY } from "../support/nfeFixtures.ts";
-import { OPERADOR, expect, itemCounter, loginAs, test } from "../support/fixtures.ts";
+import {
+  OPERADOR,
+  expect,
+  itemCounter,
+  loginAs,
+  openNoteFromQueue,
+  queueNoteCard,
+  test,
+} from "../support/fixtures.ts";
 
 /**
  * E2E-001 — Busca e bipagem completa de uma nota
@@ -18,11 +26,11 @@ test("E2E-001: operador busca a nota, bipa todas as caixas e vê o relatório se
   await page.getByRole("button", { name: "Buscar nota" }).click();
 
   // Assert — a nota entra na fila de conferência
-  const queueCard = page.getByRole("button", { name: new RegExp(`Nota ${REAL_INVOICE_NUMBER}`) });
+  const queueCard = queueNoteCard(page, REAL_INVOICE_NUMBER);
   await expect(queueCard).toBeVisible();
 
   // Act — abre a bipagem e bipa todas as caixas esperadas
-  await queueCard.click();
+  await openNoteFromQueue(page, REAL_INVOICE_NUMBER);
   await expect(page.getByRole("heading", { name: `Nota ${REAL_INVOICE_NUMBER}` })).toBeVisible();
   const counter = itemCounter(page, PANETONE.description);
   await expect(counter).toHaveText(`0/${REAL_NOTE_QUANTITY}`);

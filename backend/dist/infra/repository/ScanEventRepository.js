@@ -41,6 +41,13 @@ class ScanEventRepositoryDatabase {
             .returning({ id: schema_1.scanEvents.id });
         return rows.length;
     }
+    async deleteByNoteId(noteId) {
+        const rows = await this.exec
+            .delete(schema_1.scanEvents)
+            .where((0, drizzle_orm_1.eq)(schema_1.scanEvents.noteId, noteId))
+            .returning({ id: schema_1.scanEvents.id });
+        return rows.length;
+    }
 }
 exports.default = ScanEventRepositoryDatabase;
 //# sourceMappingURL=ScanEventRepository.js.map
